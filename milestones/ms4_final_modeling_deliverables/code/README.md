@@ -8,7 +8,7 @@ Recommended main notebook name:
 cs1090b_ms4_main_group66.ipynb
 ```
 
-Current implementation entry points:
+Current implementation entry points for the corrected baseline layer:
 
 | Path | Purpose |
 |---|---|
@@ -23,6 +23,18 @@ Current implementation entry points:
 | `tests/test_smoke.py` | Pytest wrapper for the same non-training smoke path. |
 | `pyproject.toml` / `uv.lock` | Reproducible dependency and package management through `uv`. |
 
+Updated design entry points to add before the transformer-author results are report-facing:
+
+| Path | Purpose |
+|---|---|
+| `src/ms4mbti/embeddings.py` | Frozen transformer post-embedding inference and cache metadata. |
+| `src/ms4mbti/author_features.py` | Author-level text, emotion, activity, length, and truncation feature construction. |
+| `src/ms4mbti/negative_controls.py` | Deterministic split-preserving shuffled-emotion feature tables. |
+| `src/ms4mbti/transformer_author.py` | Mean-pooling, mean-plus-std, and set/attention author transformer training helpers. |
+| `scripts/cache_transformer_embeddings.py` | Full-corpus frozen transformer embedding cache job. |
+| `scripts/run_transformer_author_models.py` | Frozen transformer author classifiers: text, emotion-only, shuffled emotion, real emotion, controls, and real emotion plus controls. |
+| `scripts/run_set_attention_author_models.py` | Set/attention author transformer, pooling ablations, and 50 versus 200 post-budget sensitivity. |
+
 Minimum sections:
 
 1. Project metadata and dependency notes.
@@ -36,7 +48,7 @@ Minimum sections:
 9. Ablations.
 10. Interpretation and reproducibility notes.
 
-Current notebook coverage:
+Current notebook coverage for the tracked baseline-layer results:
 
 - uv/package/hardware environment check
 - preprocessing, leakage, split-balance, and token-truncation audits
@@ -50,6 +62,18 @@ Current notebook coverage:
 - threshold-objective sensitivity for balanced accuracy versus F1
 - token-length audit and 128 versus 256 GRU training sensitivity
 - run-level commands, interpretation, references, and disclosure
+
+Updated notebook sections required by the current design:
+
+- explicit statement that emotion probabilities are text-derived transferred representations, not independent emotion measurements or causal mediators
+- frozen transformer embedding cache and author-feature construction
+- emotion-only author baseline
+- frozen transformer author models with text-only, shuffled emotion, real emotion, controls, and real emotion plus controls
+- set/attention author transformer over unordered post embeddings with matched shuffled-emotion and control variants
+- mean-pooling and mean-plus-std pooling ablations
+- 50 versus 200 retained-post sensitivity
+- paired bootstrap intervals for real-emotion-minus-text and shuffled-emotion-minus-text deltas
+- future-work note excluding supervised post-level transformer fine-tuning from the MS4 mainline
 
 ## Environment Management
 
@@ -122,3 +146,5 @@ uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id 
 uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_gru_len256_full --max-length 256 --pos-weight-variant sqrt
 uv run --extra full python scripts/aggregate_report_results.py
 ```
+
+The build order above regenerates the currently tracked baseline-layer artifacts. After the transformer-author scripts are implemented, the full build order should insert transformer embedding caching, frozen author classifiers, set/attention author classifiers, and the updated aggregation step before `scripts/aggregate_report_results.py`.

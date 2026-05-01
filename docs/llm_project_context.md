@@ -71,21 +71,30 @@ Current research question:
   - B2 did not meaningfully outperform B1.
 - TA score: 19.8/20.
 - TA issue: notebook narrative has broken cross-references, for example references to section 3.1.4 even though section 3.1 has no sub-subsections.
-- Internal consistency note: MS3 slides mention a DistilBERT Stage 2 text encoder as part of the final pipeline, while the submitted notebook treats Stage 2 DistilBERT as a stretch goal. For MS4, make this scope decision explicit before implementing.
+- Internal consistency note: MS3 slides mention a DistilBERT Stage 2 text encoder as part of the final pipeline, while the submitted notebook treats Stage 2 DistilBERT as a stretch goal. The current MS4 design resolves this by excluding supervised post-level Stage 2 transformer fine-tuning from the report-facing mainline and using frozen transformer author representations instead.
 - Team-work note: any person-by-person task split shown in MS3 slides/scripts was tentative and written to satisfy presentation requirements. Do not treat it as the actual MS4 division of labor.
 
 ## MS4 Direction
 
-MS4 has not started. A tentative experiment and notebook plan is recorded in `../milestones/ms4_final_modeling_deliverables/tentative_modeling_notebook_design.md`. The final deliverables should be built around the MS3 diagnosis:
+MS4 has a completed corrected GRU/TF-IDF baseline layer in `../milestones/ms4_final_modeling_deliverables/code/` and `../milestones/ms4_final_modeling_deliverables/report/results/`. The current scientific design is recorded in `../milestones/ms4_final_modeling_deliverables/tentative_modeling_notebook_design.md`.
 
-- Class-weighted BCE for the MBTI head.
+The final deliverables should still build from the MS3 diagnosis:
+
+- Class-weighted BCE for the legacy GRU MBTI head.
 - Soft author-level aggregation by averaging post-level probabilities.
 - Per-dimension thresholds tuned on validation, with F1 and balanced accuracy tracked.
-- DistilBERT or another stronger Stage 1 emotion classifier if compute permits.
-- Cache emotion probabilities so repeated MBTI runs do not recompute Stage 1.
-- Report author-level metrics: balanced accuracy, F1, precision, recall, ROC-AUC where continuous scores exist.
-- Include ablations that isolate the three important levers: class weighting, soft aggregation, stronger emotion encoder.
+- Cached DistilBERT emotion probabilities so repeated MBTI runs do not recompute Stage 1.
+- Report author-level metrics: balanced accuracy, F1, precision, recall, ROC-AUC, and PR-AUC/average precision where continuous scores exist.
 - Load Reddit data with KaggleHub in code.
-- Reassign MS4 work pragmatically; ignore MS3's named-person next-step assignments unless the team explicitly confirms them again.
 
-Avoid starting MS4 by rewriting everything. The strongest story is to show that the team understood why MS3 failed and made targeted fixes.
+The updated MS4 design adds a stricter transformer author-representation layer:
+
+- Treat emotion probabilities as text-derived transferred representations, not independent emotion measurements or causal mediators.
+- Use matched comparisons: `text + real emotion` minus `text-only`.
+- Add shuffled-emotion negative controls to test whether emotion gains depend on aligned author-level emotion features.
+- Add activity/length controls to check whether gains are proxies for verbosity, retained-post count, or truncation exposure.
+- Add an emotion-only author baseline to decide whether emotion is standalone signal, complementary signal, or compressed text proxy.
+- Compare frozen transformer author features and set/attention author transformers against mean-pooling baselines.
+- Exclude supervised post-level transformer fine-tuning from the MS4 mainline because it changes the estimand and reintroduces post-label noise.
+
+Avoid treating the updated design as a model-capacity contest. The strongest story is a controlled author-level test of whether transferred emotion representations add incremental information beyond matched text representations.

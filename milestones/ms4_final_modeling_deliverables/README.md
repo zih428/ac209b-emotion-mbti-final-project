@@ -2,7 +2,7 @@
 
 ## Status
 
-Implemented locally and summarized for report/video use.
+Corrected GRU/TF-IDF baseline layer implemented locally and summarized for report/video use. The expanded transformer author-representation design has been updated but is not yet implemented in the tracked result artifacts.
 
 ## Source Boundary
 
@@ -13,7 +13,7 @@ Requirements and deadlines below summarize `requirements.md`, which was transcri
 | Path | Purpose |
 |---|---|
 | `requirements.md` | Markdown summary of the MS4 requirement page. |
-| `tentative_modeling_notebook_design.md` | Tentative MS4 experiment and notebook design; not completed results. |
+| `tentative_modeling_notebook_design.md` | Current MS4 experiment and notebook design; not completed transformer-author results. |
 | `artifacts/requirements_ms4_final_modeling_deliverables.png` | Screenshot of the MS4 requirement page. |
 | `report/results/` | Tracked report-ready CSV/PNG result artifacts used by the executed notebook. |
 | `video/` | Video script, recording notes, and video link notes. |
@@ -74,8 +74,8 @@ The video should cover, roughly in order:
 
 ## Implemented MS4 Modeling Summary
 
-The expanded tentative experiment design is preserved in `tentative_modeling_notebook_design.md`.
-The executed notebook and tracked result artifacts now implement the report-facing MS4 path:
+The expanded experiment design is preserved in `tentative_modeling_notebook_design.md`.
+The executed notebook and tracked result artifacts currently implement the corrected baseline layer:
 
 - masked Reddit preprocessing through KaggleHub
 - author-level train/validation/test split
@@ -95,7 +95,22 @@ Headline test mean balanced accuracy:
 - GRU Text Inverse Weight: 0.5855
 - Majority: 0.5000
 
-The report should frame the emotion channel as a meaningful improvement over the controlled neural text baseline, while noting that the simpler author-level TF-IDF logistic model remains the strongest overall submitted model.
+These tracked results should be treated as the baseline layer, not as the complete updated MS4 design. They support the MS3 diagnosis and show that corrected GRU plus DistilBERT emotion improves over corrected GRU text, while author-level TF-IDF logistic remains the strongest currently tracked model.
+
+## Updated Transformer Author Design
+
+The current design strengthens the final scientific claim by adding transformer author representations and stricter emotion controls:
+
+- emotion probabilities are framed as text-derived transferred representations, not independent measurements or causal mediators
+- primary estimand: matched `text + real emotion` minus `text-only` at the author level
+- negative control: matched `text + shuffled emotion` minus `text-only`
+- activity/length controls: retained post count, post length, truncation exposure, and total retained token count
+- emotion-only author baseline to distinguish standalone signal, complementarity, and compressed text proxy behavior
+- frozen transformer author classifiers using post-embedding summaries
+- set/attention author transformer over unordered post embeddings
+- mean-pooling and mean-plus-std pooling ablations for the author transformer
+- 50 versus 200 retained-post budget sensitivity
+- supervised post-level transformer fine-tuning excluded from the MS4 mainline because it changes the estimand and reintroduces post-label noise
 
 ## Suggested Success Metrics
 
@@ -106,5 +121,6 @@ Report per dimension:
 - precision
 - recall
 - ROC-AUC when using continuous author-level scores
+- PR-AUC / average precision for skewed dimensions such as `N/S`
 
 Do not rely on raw accuracy alone because the MBTI dimensions are imbalanced, especially `N/S`.

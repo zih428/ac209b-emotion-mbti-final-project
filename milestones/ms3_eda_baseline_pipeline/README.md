@@ -112,4 +112,6 @@ The MS3 materials are slightly inconsistent about the final model scope:
 - The submitted slide deck and presenter script mention four upgrades, including a DistilBERT Stage 2 text encoder.
 - The submitted notebook's Section 5 frames the final pipeline as three bundled upgrades and treats Stage 2 DistilBERT as a stretch goal.
 
-For MS4, decide this explicitly based on compute. The lower-risk path is to keep the Stage 2 GRU fixed and first test class weighting, soft aggregation, threshold tuning, and improved Stage 1 emotion probabilities. Add Stage 2 DistilBERT only if there is enough time to evaluate it cleanly.
+At MS3 handoff time, this needed an explicit MS4 scope decision based on compute. The lower-risk path was to keep the Stage 2 GRU fixed and first test class weighting, soft aggregation, threshold tuning, and improved Stage 1 emotion probabilities before considering Stage 2 DistilBERT.
+
+MS4 resolution note: the current MS4 design keeps supervised post-level Stage 2 transformer fine-tuning out of the report-facing mainline because it changes the estimand and reintroduces post-label noise. Transformer work is instead centered on frozen post embeddings and author-level aggregation.

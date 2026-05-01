@@ -20,7 +20,7 @@ Sections labeled as recommendations, carry-forward notes, or agent instructions 
 - **Canvas project number:** 66
 - **Team:** Harry Hu, Tom Shan, Wendy Wang, Kemeng Zhang
 - **Topic:** Emotion-informed MBTI prediction from Reddit writing
-- **Current state:** Milestones 0-3 are historical/submitted materials. Milestone 4 has not started.
+- **Current state:** Milestones 0-3 are historical/submitted materials. Milestone 4 has a corrected GRU/TF-IDF baseline layer implemented locally, with an updated transformer author-representation design pending implementation.
 
 ## Core Research Question
 
@@ -57,10 +57,11 @@ Do text plus emotion-informed features improve author-level prediction of the fo
 
 ## MS4 Immediate Next Step
 
-Before writing final code or report text, read:
+Before writing or revising final code/report text, read:
 
 - `milestones/ms4_final_modeling_deliverables/README.md`
+- `milestones/ms4_final_modeling_deliverables/tentative_modeling_notebook_design.md`
 - `milestones/ms3_eda_baseline_pipeline/README.md`
 - `data/README.md`
 
-The MS3 diagnosis says the vanilla baselines collapsed to the majority class. The final model should prioritize class-weighted BCE, soft author aggregation, tuned thresholds, and a stronger emotion encoder before expanding into many unrelated ablations.
+The current MS4 design keeps the completed corrected GRU/TF-IDF layer as baseline evidence, then adds transformer author representations to test the main question more rigorously. The key claim is not causal emotion prediction: emotion probabilities are text-derived transferred representations. The main comparison is matched `text + real emotion` versus `text-only`, checked against shuffled-emotion negative controls and activity/length controls.

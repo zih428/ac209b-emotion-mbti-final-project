@@ -7,8 +7,12 @@ Recommended report arc:
 1. Motivation and problem statement.
 2. Data and only the EDA findings that directly drove modeling.
 3. MS3 baseline failure diagnosis.
-4. Targeted final model upgrades.
-5. Results and ablations.
-6. Interpretation, limitations, broader impact, and future work.
+4. Scientific framing of emotion as a text-derived transferred representation.
+5. Corrected baseline layer: TF-IDF, corrected GRU text, and corrected GRU plus emotion.
+6. Transformer author layer: frozen transformer features and set/attention author aggregation.
+7. Emotion increment analysis: real emotion versus text-only, checked against shuffled-emotion negative controls and activity/length controls.
+8. Interpretation, limitations, broader impact, and future work.
 
 Avoid dumping notebook output. The report should read like a concise paper.
+
+Do not frame emotion probabilities as independent measurements or causal mediators. The defensible claim is incremental predictive information beyond matched text representations under author-level evaluation.

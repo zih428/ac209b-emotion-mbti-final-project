@@ -101,7 +101,9 @@ The notebook prioritizes:
 3. Per-dimension validation-tuned thresholds.
 4. Improved Stage 1 emotion features, especially DistilBERT.
 
-The notebook treats Stage 2 DistilBERT as a future/stretch option, while the submitted slides mention it as a fourth targeted upgrade. This scope should be resolved explicitly for MS4.
+The notebook treats Stage 2 DistilBERT as a future/stretch option, while the submitted slides mention it as a fourth targeted upgrade. This was an unresolved scope issue at MS3 handoff.
+
+MS4 resolution note: the current MS4 design excludes supervised post-level Stage 2 transformer fine-tuning from the report-facing mainline. Transformer work is instead framed as frozen author representations and set/attention author aggregation, with matched real-emotion, shuffled-emotion, and control comparisons.
 
 ## Team-Work Note
 
