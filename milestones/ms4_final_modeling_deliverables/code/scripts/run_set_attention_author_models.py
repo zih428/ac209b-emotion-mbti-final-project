@@ -130,9 +130,25 @@ def add_post_controls(posts: pd.DataFrame, *, text_col: str = "text_masked") -> 
     out = posts.copy()
     token_length = out[text_col].fillna("").astype(str).str.split().str.len().astype(float)
     out["post_token_length"] = token_length
-    out["post_is_over_128"] = (token_length > 128).astype(float)
+    out["post_is_over_256"] = (token_length > 256).astype(float)
     out["post_log_token_length"] = np.log1p(token_length)
     return out
+
+
+def retain_post_budget(
+    posts: pd.DataFrame,
+    *,
+    post_budget: int,
+    author_col: str = "author",
+) -> pd.DataFrame:
+    """Retain the same per-author post budget used by set-array construction."""
+
+    return (
+        posts.sort_values([author_col])
+        .groupby(author_col, sort=True, group_keys=False)
+        .head(post_budget)
+        .copy()
+    )
 
 
 def standardize_post_controls_train_only(
@@ -183,11 +199,7 @@ def main() -> None:
         max_authors = args.max_authors_per_split or 32
         posts = sample_authors(posts, max_authors_per_split=max_authors, seed=args.seed)
     posts = add_post_controls(posts)
-    control_cols = ("post_token_length", "post_is_over_128", "post_log_token_length")
-    posts, control_scaling = standardize_post_controls_train_only(
-        posts,
-        control_cols=control_cols,
-    )
+    control_cols = ("post_token_length", "post_is_over_256", "post_log_token_length")
     embeddings, _manifest = read_embedding_cache(args.embedding_cache_dir)
     emotion = pd.read_parquet(args.emotion_feature_path)
     merged = posts.merge(
@@ -257,11 +269,22 @@ def main() -> None:
         "real_controls": emb_cols + EMOTION_FEATURE_COLUMNS + control_cols,
     }
 
+    control_scaling_by_budget = {}
     for post_budget in args.post_budgets:
+        budget_control_frame = retain_post_budget(merged, post_budget=post_budget)
+        budget_control_frame, control_scaling = standardize_post_controls_train_only(
+            budget_control_frame,
+            control_cols=control_cols,
+        )
+        control_scaling_by_budget[str(post_budget)] = control_scaling
         for model_id_base in args.set_variants:
             feature_key = SET_VARIANTS[model_id_base]
             model_id = f"{model_id_base}_p{post_budget}"
-            frame = frames[feature_key]
+            frame = (
+                budget_control_frame
+                if feature_key in {"controls", "real_controls"}
+                else frames[feature_key]
+            )
             cols = feature_sets[feature_key]
             logger.step(
                 "Training set/attention model",
@@ -300,7 +323,7 @@ def main() -> None:
         "seed": int(args.seed),
         "set_variants": args.set_variants,
         "skip_pooling": bool(args.skip_pooling),
-        "post_control_scaling": control_scaling,
+        "post_control_scaling_by_budget": control_scaling_by_budget,
         "model_summaries": summaries,
         "output_dir": str(args.output_dir),
     }

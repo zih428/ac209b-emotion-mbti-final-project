@@ -158,7 +158,7 @@ New transformer-centered core:
 - Set/attention author transformer over each author's unordered post embeddings, with text-only, text plus real emotion, text plus shuffled emotion, text plus controls, and text plus real emotion plus controls.
 - Mean-pooling and mean-plus-std pooling ablations for the set/attention author transformer.
 - A two-level post-budget sensitivity for author transformer models, using 50 versus 200 retained posts per author.
-- A small supplemental stability check for the planned high-history 200-post set/attention setting: two additional seeds at 5 epochs and 10/20 epoch sensitivity for text-only, text plus real emotion, and text plus shuffled emotion.
+- A small supplemental stability check for the planned high-history 200-post set/attention setting: two additional seeds at 5 epochs and 10/20 max-epoch-cap sensitivity, with early stopping enabled, for text-only, text plus real emotion, and text plus shuffled emotion.
 - Unified emotion-increment analysis across GRU, frozen-transformer, and set/attention-transformer families.
 
 Out of scope for the core:
@@ -387,7 +387,7 @@ Purpose:
 For the planned high-history 200-post set/attention setting, run a compact robustness check rather than a large grid:
 
 - Repeat the 5-epoch p200 text-only, text-plus-real-emotion, and text-plus-shuffled-emotion variants with two additional seeds.
-- Run p200 epoch sensitivity at 10 and 20 epochs for the same three variants.
+- Run p200 max-epoch-cap sensitivity at 10 and 20 epochs for the same three variants, with early stopping still enabled.
 - Report these as supporting diagnostics, not as a separate model search.
 
 Purpose:
@@ -592,7 +592,7 @@ The main notebook should be readable as a complete final-project artifact. Helpe
     - Train or load set/attention transformer text-only, text-plus-shuffled-emotion, text-plus-real-emotion, text-plus-controls, and text-plus-real-emotion-plus-controls models.
     - Include the mean-pooling or mean-plus-std ablation using the same embeddings.
     - Include 50 versus 200 retained-post budget sensitivity.
-    - Include supplemental seed stability and epoch sensitivity for the 200-post text, real-emotion, and shuffled-emotion variants.
+    - Include supplemental seed stability and max-epoch-cap sensitivity for the 200-post text, real-emotion, and shuffled-emotion variants.
     - Treat this as the second major transformer result block.
 
 12. **Excluded Supervised Transformer Ceiling**
@@ -710,10 +710,10 @@ Recommended figures:
 14. Emotion-increment plot across model families, showing real-emotion and shuffled-emotion deltas.
 15. Unified model comparison plot by metric and dimension.
 16. Bootstrap confidence intervals for matched real-emotion-minus-text and shuffled-emotion-minus-text deltas.
-17. Final model confusion matrices.
+17. GRU baseline and p200 set/attention confusion matrices.
 18. Post-budget and pooling ablation plot for set/attention transformer.
 19. Supplemental p200 set/attention seed-stability plot.
-20. Supplemental p200 set/attention epoch-sensitivity plot.
+20. Supplemental p200 set/attention max-epoch-cap sensitivity plot.
 
 Avoid text-heavy figures. Captions should explain the modeling decision supported by each visualization.
 

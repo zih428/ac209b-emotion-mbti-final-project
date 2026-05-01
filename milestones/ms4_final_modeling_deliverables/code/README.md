@@ -59,11 +59,11 @@ Current notebook coverage:
 - frozen transformer author result table from `scripts/run_transformer_author_models.py`
 - set/attention author result table from `scripts/run_set_attention_author_models.py`
 - paired bootstrap delta table for real-emotion-minus-text and shuffled-emotion-minus-text comparisons
-- supplemental p200 seed-stability and epoch-sensitivity tables/figures for text, real-emotion, and shuffled-emotion set/attention variants
+- supplemental p200 seed-stability and max-epoch-cap sensitivity tables/figures for text, real-emotion, and shuffled-emotion set/attention variants
 - full reproduction commands showing which scripts generate the training outputs consumed by the notebook
 - final takeaways suitable for report and video planning
 
-The set/attention training entry point fixes the requested seed before model initialization, uses a seeded PyTorch `DataLoader` generator for shuffled training batches, and standardizes post-level control columns with training-split statistics only.
+The set/attention training entry point fixes the requested seed before model initialization, uses a seeded PyTorch `DataLoader` generator for shuffled training batches, and standardizes post-level control columns with training-split statistics inside each post-budget setting. The set/attention truncation control uses a 256-token indicator to match the frozen MiniLM embedding cache.
 
 ## Environment Management
 

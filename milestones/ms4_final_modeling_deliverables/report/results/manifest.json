@@ -1,7 +1,6 @@
 {
   "bootstrap_differences_path": "bootstrap_pairwise_differences.csv",
   "bootstrap_intervals_path": "bootstrap_model_intervals.csv",
-  "confusions_path": "final_confusion_matrices.csv",
   "emotion_distribution_path": "emotion_distribution_source_vs_reddit.csv",
   "figures": [
     "fig_ms4_pipeline_diagram.png",
@@ -12,7 +11,8 @@
     "fig_emotion_gain_by_target.png",
     "fig_final_threshold_tuning_curves.png",
     "fig_threshold_objective_sensitivity.png",
-    "fig_final_confusion_matrices.png",
+    "fig_gru_baseline_confusion_matrices.png",
+    "fig_set_attention_p200_confusion_matrices.png",
     "fig_source_vs_reddit_emotion_distribution.png",
     "fig_token_length_sensitivity.png",
     "fig_max_length_training_sensitivity.png",
@@ -25,6 +25,7 @@
   ],
   "frozen_transformer_metrics_path": "frozen_transformer_model_metrics.csv",
   "frozen_transformer_summary_path": "frozen_transformer_model_summary.csv",
+  "gru_confusions_path": "gru_baseline_confusion_matrices.csv",
   "histories_path": "gru_training_histories.csv",
   "max_length_training_sensitivity_path": "max_length_training_sensitivity.csv",
   "metrics_path": "all_model_metrics.csv",
@@ -32,6 +33,7 @@
   "n_models": 5,
   "n_set_attention_models": 12,
   "n_set_attention_supplemental_runs": 4,
+  "set_attention_confusions_path": "set_attention_p200_confusion_matrices.csv",
   "set_attention_metrics_path": "set_attention_model_metrics.csv",
   "set_attention_seed_stability_path": "set_attention_seed_stability.csv",
   "set_attention_summary_path": "set_attention_model_summary.csv",

@@ -20,7 +20,7 @@ Transformer-author top-line test mean balanced accuracy:
 
 | model | test mean balanced accuracy |
 |---|---:|
-| Set Attention Text + Controls p=200 | 0.6817 |
+| Set Attention Text + Controls p=200 | 0.6883 |
 | Set Attention Text p=200 | 0.6815 |
 | Set Attention Text + Shuffled Emotion p=200 | 0.6773 |
 | Set Attention Text + Real Emotion p=200 | 0.6653 |
@@ -30,11 +30,12 @@ Additional diagnostics included here:
 
 - MS4 pipeline diagram.
 - Bootstrap confidence intervals over test authors.
-- Final text+emotion GRU threshold-tuning curves.
+- GRU text+emotion threshold-tuning curves.
 - Threshold objective sensitivity for balanced accuracy vs F1.
-- Final text+emotion GRU confusion matrices.
+- GRU text+emotion baseline confusion matrices.
+- Set Attention Text p=200 author-model confusion matrices.
 - Source-vs-Reddit emotion distribution comparison.
 - Token-length sensitivity audit for 128 vs 256 token limits.
 - Fixed text-only GRU 128 vs 256 max-length training sensitivity.
-- Transformer-author artifact status, transformer summaries, paired deltas, seed stability, and epoch sensitivity.
+- Transformer-author artifact status, transformer summaries, paired deltas, seed stability, and max-epoch-cap sensitivity.
 - Supplemental p200 set/attention checks show that the author-level transformer direction is stable, while the emotion-specific increment is seed/training sensitive.

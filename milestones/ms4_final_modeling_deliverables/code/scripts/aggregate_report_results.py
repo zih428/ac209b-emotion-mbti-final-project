@@ -153,15 +153,22 @@ AUTHOR_SCORE_SOURCES = {
     },
 }
 
-FINAL_MODEL_DIR = CODE_DIR / "artifacts" / "runs" / "stage2_text_emotion_gru_full"
-FINAL_AUTHOR_SCORES = FINAL_MODEL_DIR / "author_scores_stage2_text_gru.csv"
-FINAL_THRESHOLDS = FINAL_MODEL_DIR / "thresholds_stage2_text_gru.csv"
+GRU_DIAGNOSTIC_DIR = CODE_DIR / "artifacts" / "runs" / "stage2_text_emotion_gru_full"
+GRU_DIAGNOSTIC_AUTHOR_SCORES = GRU_DIAGNOSTIC_DIR / "author_scores_stage2_text_gru.csv"
+GRU_DIAGNOSTIC_THRESHOLDS = GRU_DIAGNOSTIC_DIR / "thresholds_stage2_text_gru.csv"
 TEXT_GRU_128_DIR = CODE_DIR / "artifacts" / "runs" / "stage2_text_gru_full"
 TEXT_GRU_256_DIR = CODE_DIR / "artifacts" / "runs" / "stage2_text_gru_len256_full"
 EMOTION_CACHE = CODE_DIR / "artifacts" / "cache" / "emotion_probs_full.parquet"
 PREPROCESSED_POSTS = CODE_DIR / "artifacts" / "preprocessed" / "full" / "modeling_posts.parquet"
 TRANSFORMER_AUTHOR_DIR = CODE_DIR / "artifacts" / "runs" / "transformer_author"
 SET_ATTENTION_AUTHOR_DIR = CODE_DIR / "artifacts" / "runs" / "set_attention_author"
+SET_ATTENTION_CONFUSION_MODEL_ID = "set_attention_text_p200"
+SET_ATTENTION_CONFUSION_AUTHOR_SCORES = (
+    SET_ATTENTION_AUTHOR_DIR / f"author_scores_{SET_ATTENTION_CONFUSION_MODEL_ID}.csv"
+)
+SET_ATTENTION_CONFUSION_THRESHOLDS = (
+    SET_ATTENTION_AUTHOR_DIR / f"thresholds_{SET_ATTENTION_CONFUSION_MODEL_ID}.csv"
+)
 TARGETS = ("target_E", "target_S", "target_T", "target_J")
 
 SUPPLEMENTAL_SET_ATTENTION_RUNS = [
@@ -376,9 +383,27 @@ def save_emotion_gain_plot(metrics: pd.DataFrame, output_dir: Path) -> Path:
     return path
 
 
-def load_final_author_scores() -> tuple[pd.DataFrame, pd.DataFrame]:
-    require_files({"final_author_scores": FINAL_AUTHOR_SCORES, "final_thresholds": FINAL_THRESHOLDS})
-    return pd.read_csv(FINAL_AUTHOR_SCORES), pd.read_csv(FINAL_THRESHOLDS)
+def load_gru_diagnostic_author_scores() -> tuple[pd.DataFrame, pd.DataFrame]:
+    require_files(
+        {
+            "gru_diagnostic_author_scores": GRU_DIAGNOSTIC_AUTHOR_SCORES,
+            "gru_diagnostic_thresholds": GRU_DIAGNOSTIC_THRESHOLDS,
+        }
+    )
+    return pd.read_csv(GRU_DIAGNOSTIC_AUTHOR_SCORES), pd.read_csv(GRU_DIAGNOSTIC_THRESHOLDS)
+
+
+def load_set_attention_confusion_author_scores() -> tuple[pd.DataFrame, pd.DataFrame]:
+    require_files(
+        {
+            "set_attention_author_scores": SET_ATTENTION_CONFUSION_AUTHOR_SCORES,
+            "set_attention_thresholds": SET_ATTENTION_CONFUSION_THRESHOLDS,
+        }
+    )
+    return (
+        pd.read_csv(SET_ATTENTION_CONFUSION_AUTHOR_SCORES),
+        pd.read_csv(SET_ATTENTION_CONFUSION_THRESHOLDS),
+    )
 
 
 def load_author_score_inputs() -> dict[str, dict[str, Any]]:
@@ -956,7 +981,7 @@ def save_set_attention_epoch_sensitivity_plot(
         ax=ax,
     )
     ax.axhline(0.5, color=PALETTE["muted"], linestyle="--", linewidth=1)
-    ax.set_xlabel("Training epochs")
+    ax.set_xlabel("Max epochs (early stopping enabled)")
     ax.set_ylabel("Test balanced accuracy")
     ax.set_ylim(0.60, max(0.72, float(plot_df["balanced_accuracy"].max()) + 0.03))
     ax.legend(title="")
@@ -1139,14 +1164,15 @@ def save_threshold_curve_plot(
     return path
 
 
-def make_final_confusion_matrices(
+def make_confusion_matrices(
     author_scores: pd.DataFrame,
     selected_thresholds: pd.DataFrame,
+    *,
+    score_cols: tuple[str, ...],
 ) -> pd.DataFrame:
     test = author_scores.loc[author_scores["split"] == "test"].copy()
     rows = []
-    for target in TARGETS:
-        score_col = f"score_gru_{target}"
+    for target, score_col in zip(TARGETS, score_cols, strict=True):
         threshold = float(
             selected_thresholds.loc[selected_thresholds["target"] == target, "threshold"].iloc[0]
         )
@@ -1166,7 +1192,7 @@ def make_final_confusion_matrices(
     return pd.DataFrame(rows)
 
 
-def save_confusion_matrix_plot(confusions: pd.DataFrame, output_dir: Path) -> Path:
+def save_confusion_matrix_plot(confusions: pd.DataFrame, output_dir: Path, filename: str) -> Path:
     fig, axes = plt.subplots(2, 2, figsize=(8.5, 7))
     for ax, target in zip(axes.ravel(), TARGETS, strict=True):
         matrix = confusions.loc[confusions["target"] == target].pivot(
@@ -1177,7 +1203,7 @@ def save_confusion_matrix_plot(confusions: pd.DataFrame, output_dir: Path) -> Pa
         ax.set_xlabel("Predicted")
         ax.set_ylabel("True")
     fig.tight_layout()
-    path = output_dir / "fig_final_confusion_matrices.png"
+    path = output_dir / filename
     fig.savefig(path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     return path
@@ -1300,13 +1326,25 @@ def main() -> None:
     metrics = load_metrics()
     histories = load_histories()
     summary = make_summary(metrics)
-    final_author_scores, final_thresholds = load_final_author_scores()
+    gru_diagnostic_author_scores, gru_diagnostic_thresholds = load_gru_diagnostic_author_scores()
+    set_attention_author_scores, set_attention_thresholds = (
+        load_set_attention_confusion_author_scores()
+    )
     author_inputs = load_author_score_inputs()
-    threshold_curves = make_threshold_curves(final_author_scores)
-    confusions = make_final_confusion_matrices(final_author_scores, final_thresholds)
+    threshold_curves = make_threshold_curves(gru_diagnostic_author_scores)
+    gru_confusions = make_confusion_matrices(
+        gru_diagnostic_author_scores,
+        gru_diagnostic_thresholds,
+        score_cols=tuple(f"score_gru_{target}" for target in TARGETS),
+    )
+    set_attention_confusions = make_confusion_matrices(
+        set_attention_author_scores,
+        set_attention_thresholds,
+        score_cols=make_score_columns(SET_ATTENTION_CONFUSION_MODEL_ID),
+    )
     emotion_distribution = make_emotion_distribution()
     bootstrap_intervals, bootstrap_differences = make_bootstrap_intervals(author_inputs)
-    threshold_sensitivity = make_threshold_objective_sensitivity(final_author_scores)
+    threshold_sensitivity = make_threshold_objective_sensitivity(gru_diagnostic_author_scores)
     token_length_sensitivity = make_token_length_sensitivity()
     max_length_training_sensitivity = make_max_length_training_sensitivity()
     frozen_transformer_metrics = read_optional_metrics(
@@ -1332,7 +1370,8 @@ def main() -> None:
     summary_path = args.output_dir / "model_summary.csv"
     histories_path = args.output_dir / "gru_training_histories.csv"
     threshold_curves_path = args.output_dir / "final_threshold_tuning_curves.csv"
-    confusions_path = args.output_dir / "final_confusion_matrices.csv"
+    gru_confusions_path = args.output_dir / "gru_baseline_confusion_matrices.csv"
+    set_attention_confusions_path = args.output_dir / "set_attention_p200_confusion_matrices.csv"
     emotion_distribution_path = args.output_dir / "emotion_distribution_source_vs_reddit.csv"
     bootstrap_intervals_path = args.output_dir / "bootstrap_model_intervals.csv"
     bootstrap_differences_path = args.output_dir / "bootstrap_pairwise_differences.csv"
@@ -1355,7 +1394,8 @@ def main() -> None:
     summary.to_csv(summary_path, index=False)
     histories.to_csv(histories_path, index=False)
     threshold_curves.to_csv(threshold_curves_path, index=False)
-    confusions.to_csv(confusions_path, index=False)
+    gru_confusions.to_csv(gru_confusions_path, index=False)
+    set_attention_confusions.to_csv(set_attention_confusions_path, index=False)
     emotion_distribution.to_csv(emotion_distribution_path, index=False)
     bootstrap_intervals.to_csv(bootstrap_intervals_path, index=False)
     bootstrap_differences.to_csv(bootstrap_differences_path, index=False)
@@ -1378,9 +1418,18 @@ def main() -> None:
         save_target_comparison_plot(metrics, args.output_dir),
         save_training_curve_plot(histories, args.output_dir),
         save_emotion_gain_plot(metrics, args.output_dir),
-        save_threshold_curve_plot(threshold_curves, final_thresholds, args.output_dir),
+        save_threshold_curve_plot(threshold_curves, gru_diagnostic_thresholds, args.output_dir),
         save_threshold_objective_plot(threshold_sensitivity, args.output_dir),
-        save_confusion_matrix_plot(confusions, args.output_dir),
+        save_confusion_matrix_plot(
+            gru_confusions,
+            args.output_dir,
+            "fig_gru_baseline_confusion_matrices.png",
+        ),
+        save_confusion_matrix_plot(
+            set_attention_confusions,
+            args.output_dir,
+            "fig_set_attention_p200_confusion_matrices.png",
+        ),
         save_emotion_distribution_plot(emotion_distribution, args.output_dir),
         save_token_length_sensitivity_plot(token_length_sensitivity, args.output_dir),
         save_max_length_training_plot(max_length_training_sensitivity, args.output_dir),
@@ -1476,13 +1525,14 @@ def main() -> None:
                 "",
                 "- MS4 pipeline diagram.",
                 "- Bootstrap confidence intervals over test authors.",
-                "- Final text+emotion GRU threshold-tuning curves.",
+                "- GRU text+emotion threshold-tuning curves.",
                 "- Threshold objective sensitivity for balanced accuracy vs F1.",
-                "- Final text+emotion GRU confusion matrices.",
+                "- GRU text+emotion baseline confusion matrices.",
+                "- Set Attention Text p=200 author-model confusion matrices.",
                 "- Source-vs-Reddit emotion distribution comparison.",
                 "- Token-length sensitivity audit for 128 vs 256 token limits.",
                 "- Fixed text-only GRU 128 vs 256 max-length training sensitivity.",
-                "- Transformer-author artifact status, transformer summaries, paired deltas, seed stability, and epoch sensitivity.",
+                "- Transformer-author artifact status, transformer summaries, paired deltas, seed stability, and max-epoch-cap sensitivity.",
                 "- Supplemental p200 set/attention checks show that the author-level transformer direction is stable, while the emotion-specific increment is seed/training sensitive.",
                 "",
             ]
@@ -1496,7 +1546,11 @@ def main() -> None:
             "summary_path": output_manifest_path(summary_path, args.output_dir),
             "histories_path": output_manifest_path(histories_path, args.output_dir),
             "threshold_curves_path": output_manifest_path(threshold_curves_path, args.output_dir),
-            "confusions_path": output_manifest_path(confusions_path, args.output_dir),
+            "gru_confusions_path": output_manifest_path(gru_confusions_path, args.output_dir),
+            "set_attention_confusions_path": output_manifest_path(
+                set_attention_confusions_path,
+                args.output_dir,
+            ),
             "emotion_distribution_path": output_manifest_path(
                 emotion_distribution_path, args.output_dir
             ),

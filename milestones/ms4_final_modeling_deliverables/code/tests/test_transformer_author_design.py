@@ -192,21 +192,32 @@ def test_post_controls_are_standardized_from_train_split_only() -> None:
         {
             "split": ["train", "train", "val", "test"],
             "post_token_length": [10.0, 20.0, 110.0, 210.0],
-            "post_is_over_128": [0.0, 1.0, 0.0, 1.0],
+            "post_is_over_256": [0.0, 1.0, 0.0, 1.0],
             "post_log_token_length": [2.0, 4.0, 20.0, 40.0],
         }
     )
     scaled, metadata = script.standardize_post_controls_train_only(
         posts,
-        control_cols=("post_token_length", "post_is_over_128", "post_log_token_length"),
+        control_cols=("post_token_length", "post_is_over_256", "post_log_token_length"),
     )
 
     train = scaled.loc[scaled["split"] == "train"]
-    control_cols = ["post_token_length", "post_is_over_128", "post_log_token_length"]
+    control_cols = ["post_token_length", "post_is_over_256", "post_log_token_length"]
     assert np.allclose(train[control_cols].mean(), 0.0)
     assert np.allclose(train[control_cols].std(ddof=0), 1.0)
     assert metadata["fit_split"] == "train"
     assert metadata["mean"]["post_token_length"] == 15.0
+
+
+def test_post_budget_retention_matches_set_attention_arrays() -> None:
+    script = _set_attention_script()
+    posts = _set_attention_posts().sample(frac=1.0, random_state=7)
+
+    retained = script.retain_post_budget(posts, post_budget=2)
+    arrays = build_author_set_arrays(posts, feature_cols=("f0", "f1"), post_budget=2)
+
+    assert len(retained) == len(arrays.author) * 2
+    assert retained.groupby("author").size().eq(2).all()
 
 
 def test_set_attention_training_is_reproducible_with_seed() -> None:
