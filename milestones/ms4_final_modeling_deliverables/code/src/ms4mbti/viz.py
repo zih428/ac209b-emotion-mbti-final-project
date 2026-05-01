@@ -142,6 +142,80 @@ def plot_metric_comparison(metrics: pd.DataFrame, *, metric: str = "balanced_acc
     return _finish(fig, f"Model Comparison by {metric.replace('_', ' ').title()}")
 
 
+def plot_emotion_increment_deltas(deltas: pd.DataFrame):
+    required = {"comparison", "target", "point_estimate", "ci_lower", "ci_upper"}
+    missing = required - set(deltas.columns)
+    if missing:
+        raise ValueError(f"Missing delta plot columns: {sorted(missing)}")
+    plot_df = deltas.loc[deltas["target"] == "mean"].copy()
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    ax.errorbar(
+        plot_df["point_estimate"],
+        plot_df["comparison"],
+        xerr=[
+            plot_df["point_estimate"] - plot_df["ci_lower"],
+            plot_df["ci_upper"] - plot_df["point_estimate"],
+        ],
+        fmt="o",
+        color=PALETTE["blue"],
+        ecolor=PALETTE["muted"],
+        capsize=4,
+    )
+    ax.axvline(0, color=PALETTE["muted"], linewidth=1)
+    ax.set_xlabel("Mean balanced-accuracy delta with 95% paired bootstrap CI")
+    ax.set_ylabel("")
+    return _finish(fig, "Real and Shuffled Emotion Increment Tests")
+
+
+def plot_frozen_transformer_comparison(summary: pd.DataFrame):
+    required = {"model_name", "balanced_accuracy"}
+    missing = required - set(summary.columns)
+    if missing:
+        raise ValueError(f"Missing frozen transformer summary columns: {sorted(missing)}")
+    plot_df = summary.sort_values("balanced_accuracy", ascending=True)
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    sns.barplot(data=plot_df, y="model_name", x="balanced_accuracy", color=PALETTE["teal"], ax=ax)
+    ax.axvline(0.5, color=PALETTE["muted"], linestyle="--", linewidth=1)
+    ax.set_xlabel("Mean test balanced accuracy")
+    ax.set_ylabel("")
+    return _finish(fig, "Frozen Transformer Author Models")
+
+
+def plot_set_attention_comparison(summary: pd.DataFrame):
+    required = {"model_name", "balanced_accuracy"}
+    missing = required - set(summary.columns)
+    if missing:
+        raise ValueError(f"Missing set/attention summary columns: {sorted(missing)}")
+    plot_df = summary.sort_values("balanced_accuracy", ascending=True)
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    sns.barplot(data=plot_df, y="model_name", x="balanced_accuracy", color=PALETTE["gold"], ax=ax)
+    ax.axvline(0.5, color=PALETTE["muted"], linestyle="--", linewidth=1)
+    ax.set_xlabel("Mean test balanced accuracy")
+    ax.set_ylabel("")
+    return _finish(fig, "Set/Attention Author Models")
+
+
+def plot_post_budget_ablation(summary: pd.DataFrame):
+    required = {"model_id", "post_budget", "balanced_accuracy"}
+    missing = required - set(summary.columns)
+    if missing:
+        raise ValueError(f"Missing post-budget columns: {sorted(missing)}")
+    fig, ax = plt.subplots(figsize=(8, 4.8))
+    sns.lineplot(
+        data=summary,
+        x="post_budget",
+        y="balanced_accuracy",
+        hue="model_id",
+        marker="o",
+        ax=ax,
+    )
+    ax.axhline(0.5, color=PALETTE["muted"], linestyle="--", linewidth=1)
+    ax.set_xlabel("Retained posts per author")
+    ax.set_ylabel("Mean test balanced accuracy")
+    ax.legend(title="")
+    return _finish(fig, "Author Transformer Post-Budget Sensitivity")
+
+
 def save_figures(figures: Iterable, output_dir, *, prefix: str = "ms4") -> list:
     output_dir.mkdir(parents=True, exist_ok=True)
     paths = []

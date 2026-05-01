@@ -23,7 +23,16 @@ if str(SRC_DIR) not in sys.path:
 
 from ms4mbti.config import EMOTION_LABELS, RunConfig
 from ms4mbti.data import load_emotion_dataset
-from ms4mbti.viz import PALETTE, set_plot_style
+from ms4mbti.evaluation import paired_bootstrap_delta
+from ms4mbti.transformer_author import make_score_columns
+from ms4mbti.viz import (
+    PALETTE,
+    plot_emotion_increment_deltas,
+    plot_frozen_transformer_comparison,
+    plot_post_budget_ablation,
+    plot_set_attention_comparison,
+    set_plot_style,
+)
 
 
 MODEL_SOURCES = {
@@ -151,7 +160,28 @@ TEXT_GRU_128_DIR = CODE_DIR / "artifacts" / "runs" / "stage2_text_gru_full"
 TEXT_GRU_256_DIR = CODE_DIR / "artifacts" / "runs" / "stage2_text_gru_len256_full"
 EMOTION_CACHE = CODE_DIR / "artifacts" / "cache" / "emotion_probs_full.parquet"
 PREPROCESSED_POSTS = CODE_DIR / "artifacts" / "preprocessed" / "full" / "modeling_posts.parquet"
+TRANSFORMER_AUTHOR_DIR = CODE_DIR / "artifacts" / "runs" / "transformer_author"
+SET_ATTENTION_AUTHOR_DIR = CODE_DIR / "artifacts" / "runs" / "set_attention_author"
 TARGETS = ("target_E", "target_S", "target_T", "target_J")
+
+TRANSFORMER_DISPLAY_NAMES = {
+    "frozen_text_mean_std": "Frozen Text",
+    "frozen_emotion_only": "Emotion Only",
+    "frozen_text_shuffled_emotion": "Frozen Text + Shuffled Emotion",
+    "frozen_text_real_emotion": "Frozen Text + Real Emotion",
+    "frozen_text_controls": "Frozen Text + Controls",
+    "frozen_text_real_emotion_controls": "Frozen Text + Real Emotion + Controls",
+}
+
+SET_ATTENTION_DISPLAY_PREFIXES = {
+    "mean_pool_mlp_text": "Mean Pool MLP",
+    "mean_std_pool_mlp_text": "Mean+Std Pool MLP",
+    "set_attention_text": "Set Attention Text",
+    "set_attention_text_shuffled_emotion": "Set Attention Text + Shuffled Emotion",
+    "set_attention_text_real_emotion": "Set Attention Text + Real Emotion",
+    "set_attention_text_controls": "Set Attention Text + Controls",
+    "set_attention_text_real_emotion_controls": "Set Attention Text + Real Emotion + Controls",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -667,6 +697,220 @@ def save_max_length_training_plot(sensitivity: pd.DataFrame, output_dir: Path) -
     return path
 
 
+def read_optional_metrics(run_dir: Path, display_names: dict[str, str]) -> pd.DataFrame:
+    frames = []
+    if not run_dir.exists():
+        return pd.DataFrame(
+            columns=[
+                "target",
+                "n_authors",
+                "threshold",
+                "balanced_accuracy",
+                "f1",
+                "minority_precision",
+                "minority_recall",
+                "roc_auc",
+                "average_precision",
+                "raw_accuracy",
+                "positive_rate_pred",
+                "positive_rate_true",
+                "model_id",
+                "split",
+                "model_name",
+            ]
+        )
+    for path in sorted(run_dir.glob("metrics_*.csv")):
+        model_id = path.stem.removeprefix("metrics_")
+        frame = pd.read_csv(path)
+        frame["model_id"] = model_id
+        frame["model_name"] = display_names.get(model_id, model_id)
+        frames.append(frame)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+def set_attention_display_name(model_id: str) -> str:
+    for prefix, name in SET_ATTENTION_DISPLAY_PREFIXES.items():
+        suffix = model_id.removeprefix(prefix)
+        if suffix != model_id:
+            return f"{name}{suffix.replace('_p', ' p=')}"
+    return model_id
+
+
+def read_optional_set_metrics(run_dir: Path) -> pd.DataFrame:
+    if not run_dir.exists():
+        return read_optional_metrics(run_dir, {})
+    frames = []
+    for path in sorted(run_dir.glob("metrics_*.csv")):
+        model_id = path.stem.removeprefix("metrics_")
+        frame = pd.read_csv(path)
+        frame["model_id"] = model_id
+        frame["model_name"] = set_attention_display_name(model_id)
+        frames.append(frame)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+def make_optional_summary(metrics: pd.DataFrame) -> pd.DataFrame:
+    if metrics.empty:
+        return pd.DataFrame(
+            columns=[
+                "model_id",
+                "model_name",
+                "balanced_accuracy",
+                "f1",
+                "minority_recall",
+                "roc_auc",
+                "average_precision",
+                "post_budget",
+            ]
+        )
+    test = metrics.loc[metrics["split"] == "test"].copy()
+    summary = (
+        test.groupby(["model_id", "model_name"], as_index=False)[
+            ["balanced_accuracy", "f1", "minority_recall", "roc_auc", "average_precision"]
+        ]
+        .mean()
+        .sort_values("balanced_accuracy", ascending=False)
+    )
+    summary["post_budget"] = summary["model_id"].str.extract(r"_p(\d+)$").astype(float)
+    return summary
+
+
+def threshold_series(path: Path) -> pd.Series:
+    frame = pd.read_csv(path)
+    return pd.Series(frame["threshold"].to_numpy(dtype=float), index=frame["target"])
+
+
+def make_transformer_delta_table(
+    *,
+    run_dir: Path,
+    family: str,
+    baseline_model: str,
+    real_model: str,
+    shuffled_model: str,
+    n_bootstrap: int = 2000,
+) -> pd.DataFrame:
+    required = {
+        "baseline_scores": run_dir / f"author_scores_{baseline_model}.csv",
+        "real_scores": run_dir / f"author_scores_{real_model}.csv",
+        "shuffled_scores": run_dir / f"author_scores_{shuffled_model}.csv",
+        "baseline_thresholds": run_dir / f"thresholds_{baseline_model}.csv",
+        "real_thresholds": run_dir / f"thresholds_{real_model}.csv",
+        "shuffled_thresholds": run_dir / f"thresholds_{shuffled_model}.csv",
+    }
+    if any(not path.exists() for path in required.values()):
+        return pd.DataFrame()
+
+    baseline = pd.read_csv(required["baseline_scores"])
+    real = pd.read_csv(required["real_scores"])
+    shuffled = pd.read_csv(required["shuffled_scores"])
+    baseline_thresholds = threshold_series(required["baseline_thresholds"])
+    real_thresholds = threshold_series(required["real_thresholds"])
+    shuffled_thresholds = threshold_series(required["shuffled_thresholds"])
+    baseline_cols = make_score_columns(baseline_model)
+    real_cols = make_score_columns(real_model)
+    shuffled_cols = make_score_columns(shuffled_model)
+    frames = [
+        paired_bootstrap_delta(
+            baseline,
+            real,
+            baseline_score_cols=baseline_cols,
+            comparison_score_cols=real_cols,
+            baseline_thresholds=baseline_thresholds,
+            comparison_thresholds=real_thresholds,
+            comparison_name=f"{family}: real emotion minus text",
+            n_bootstrap=n_bootstrap,
+        ),
+        paired_bootstrap_delta(
+            baseline,
+            shuffled,
+            baseline_score_cols=baseline_cols,
+            comparison_score_cols=shuffled_cols,
+            baseline_thresholds=baseline_thresholds,
+            comparison_thresholds=shuffled_thresholds,
+            comparison_name=f"{family}: shuffled emotion minus text",
+            n_bootstrap=n_bootstrap,
+        ),
+    ]
+    return pd.concat(frames, ignore_index=True)
+
+
+def make_all_transformer_deltas() -> pd.DataFrame:
+    frames = []
+    frozen = make_transformer_delta_table(
+        run_dir=TRANSFORMER_AUTHOR_DIR,
+        family="Frozen transformer",
+        baseline_model="frozen_text_mean_std",
+        real_model="frozen_text_real_emotion",
+        shuffled_model="frozen_text_shuffled_emotion",
+    )
+    if not frozen.empty:
+        frames.append(frozen)
+
+    for post_budget in (50, 200):
+        suffix = f"_p{post_budget}"
+        set_delta = make_transformer_delta_table(
+            run_dir=SET_ATTENTION_AUTHOR_DIR,
+            family=f"Set attention p={post_budget}",
+            baseline_model=f"set_attention_text{suffix}",
+            real_model=f"set_attention_text_real_emotion{suffix}",
+            shuffled_model=f"set_attention_text_shuffled_emotion{suffix}",
+        )
+        if not set_delta.empty:
+            frames.append(set_delta)
+    return (
+        pd.concat(frames, ignore_index=True)
+        if frames
+        else pd.DataFrame(
+            columns=[
+                "comparison",
+                "metric",
+                "target",
+                "point_estimate",
+                "ci_lower",
+                "ci_upper",
+                "n_bootstrap",
+                "n_authors",
+            ]
+        )
+    )
+
+
+def make_transformer_artifact_status(
+    frozen_metrics: pd.DataFrame,
+    set_metrics: pd.DataFrame,
+    deltas: pd.DataFrame,
+) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "artifact_family": "frozen_transformer_author",
+                "expected_directory": TRANSFORMER_AUTHOR_DIR.relative_to(CODE_DIR).as_posix(),
+                "status": "available" if not frozen_metrics.empty else "missing",
+                "n_metric_rows": int(len(frozen_metrics)),
+            },
+            {
+                "artifact_family": "set_attention_author",
+                "expected_directory": SET_ATTENTION_AUTHOR_DIR.relative_to(CODE_DIR).as_posix(),
+                "status": "available" if not set_metrics.empty else "missing",
+                "n_metric_rows": int(len(set_metrics)),
+            },
+            {
+                "artifact_family": "paired_emotion_deltas",
+                "expected_directory": "derived from author score artifacts",
+                "status": "available" if not deltas.empty else "missing",
+                "n_metric_rows": int(len(deltas)),
+            },
+        ]
+    )
+
+
+def save_optional_figure(fig, output_dir: Path, filename: str) -> Path:
+    path = output_dir / filename
+    fig.savefig(path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
 def save_threshold_curve_plot(
     threshold_curves: pd.DataFrame,
     selected_thresholds: pd.DataFrame,
@@ -857,6 +1101,19 @@ def main() -> None:
     threshold_sensitivity = make_threshold_objective_sensitivity(final_author_scores)
     token_length_sensitivity = make_token_length_sensitivity()
     max_length_training_sensitivity = make_max_length_training_sensitivity()
+    frozen_transformer_metrics = read_optional_metrics(
+        TRANSFORMER_AUTHOR_DIR,
+        TRANSFORMER_DISPLAY_NAMES,
+    )
+    frozen_transformer_summary = make_optional_summary(frozen_transformer_metrics)
+    set_attention_metrics = read_optional_set_metrics(SET_ATTENTION_AUTHOR_DIR)
+    set_attention_summary = make_optional_summary(set_attention_metrics)
+    transformer_deltas = make_all_transformer_deltas()
+    transformer_status = make_transformer_artifact_status(
+        frozen_transformer_metrics,
+        set_attention_metrics,
+        transformer_deltas,
+    )
 
     metrics_path = args.output_dir / "all_model_metrics.csv"
     summary_path = args.output_dir / "model_summary.csv"
@@ -871,6 +1128,12 @@ def main() -> None:
     max_length_training_sensitivity_path = (
         args.output_dir / "max_length_training_sensitivity.csv"
     )
+    frozen_transformer_metrics_path = args.output_dir / "frozen_transformer_model_metrics.csv"
+    frozen_transformer_summary_path = args.output_dir / "frozen_transformer_model_summary.csv"
+    set_attention_metrics_path = args.output_dir / "set_attention_model_metrics.csv"
+    set_attention_summary_path = args.output_dir / "set_attention_model_summary.csv"
+    transformer_deltas_path = args.output_dir / "transformer_emotion_deltas.csv"
+    transformer_status_path = args.output_dir / "transformer_artifact_status.csv"
     metrics.to_csv(metrics_path, index=False)
     summary.to_csv(summary_path, index=False)
     histories.to_csv(histories_path, index=False)
@@ -882,6 +1145,12 @@ def main() -> None:
     threshold_sensitivity.to_csv(threshold_sensitivity_path, index=False)
     token_length_sensitivity.to_csv(token_length_sensitivity_path, index=False)
     max_length_training_sensitivity.to_csv(max_length_training_sensitivity_path, index=False)
+    frozen_transformer_metrics.to_csv(frozen_transformer_metrics_path, index=False)
+    frozen_transformer_summary.to_csv(frozen_transformer_summary_path, index=False)
+    set_attention_metrics.to_csv(set_attention_metrics_path, index=False)
+    set_attention_summary.to_csv(set_attention_summary_path, index=False)
+    transformer_deltas.to_csv(transformer_deltas_path, index=False)
+    transformer_status.to_csv(transformer_status_path, index=False)
 
     figure_paths = [
         save_pipeline_diagram(args.output_dir),
@@ -897,6 +1166,39 @@ def main() -> None:
         save_token_length_sensitivity_plot(token_length_sensitivity, args.output_dir),
         save_max_length_training_plot(max_length_training_sensitivity, args.output_dir),
     ]
+    if not frozen_transformer_summary.empty:
+        figure_paths.append(
+            save_optional_figure(
+                plot_frozen_transformer_comparison(frozen_transformer_summary),
+                args.output_dir,
+                "fig_frozen_transformer_author_models.png",
+            )
+        )
+    if not set_attention_summary.empty:
+        figure_paths.append(
+            save_optional_figure(
+                plot_set_attention_comparison(set_attention_summary),
+                args.output_dir,
+                "fig_set_attention_author_models.png",
+            )
+        )
+        budget_df = set_attention_summary.dropna(subset=["post_budget"])
+        if not budget_df.empty:
+            figure_paths.append(
+                save_optional_figure(
+                    plot_post_budget_ablation(budget_df),
+                    args.output_dir,
+                    "fig_set_attention_post_budget.png",
+                )
+            )
+    if not transformer_deltas.empty:
+        figure_paths.append(
+            save_optional_figure(
+                plot_emotion_increment_deltas(transformer_deltas),
+                args.output_dir,
+                "fig_transformer_emotion_deltas.png",
+            )
+        )
 
     readme = args.output_dir / "README.md"
     readme.write_text(
@@ -924,6 +1226,7 @@ def main() -> None:
                 "- Source-vs-Reddit emotion distribution comparison.",
                 "- Token-length sensitivity audit for 128 vs 256 token limits.",
                 "- Fixed text-only GRU 128 vs 256 max-length training sensitivity.",
+                "- Transformer-author artifact status, plus transformer summaries and paired deltas when full transformer runs are present locally.",
                 "",
             ]
         ),
@@ -955,8 +1258,32 @@ def main() -> None:
             "max_length_training_sensitivity_path": output_manifest_path(
                 max_length_training_sensitivity_path, args.output_dir
             ),
+            "frozen_transformer_metrics_path": output_manifest_path(
+                frozen_transformer_metrics_path, args.output_dir
+            ),
+            "frozen_transformer_summary_path": output_manifest_path(
+                frozen_transformer_summary_path, args.output_dir
+            ),
+            "set_attention_metrics_path": output_manifest_path(
+                set_attention_metrics_path, args.output_dir
+            ),
+            "set_attention_summary_path": output_manifest_path(
+                set_attention_summary_path, args.output_dir
+            ),
+            "transformer_deltas_path": output_manifest_path(
+                transformer_deltas_path, args.output_dir
+            ),
+            "transformer_status_path": output_manifest_path(
+                transformer_status_path, args.output_dir
+            ),
             "figures": [output_manifest_path(path, args.output_dir) for path in figure_paths],
             "n_models": int(summary["model_id"].nunique()),
+            "n_frozen_transformer_models": int(frozen_transformer_summary["model_id"].nunique())
+            if not frozen_transformer_summary.empty
+            else 0,
+            "n_set_attention_models": int(set_attention_summary["model_id"].nunique())
+            if not set_attention_summary.empty
+            else 0,
         },
     )
     print(summary.to_string(index=False))

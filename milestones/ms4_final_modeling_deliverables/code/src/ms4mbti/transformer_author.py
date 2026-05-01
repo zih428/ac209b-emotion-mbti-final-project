@@ -85,7 +85,7 @@ def train_author_probe(
                     activation="relu",
                     alpha=1e-4,
                     batch_size=128,
-                    early_stopping=True,
+                    early_stopping=False,
                     max_iter=120,
                     random_state=seed,
                 )
