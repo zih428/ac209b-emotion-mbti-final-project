@@ -8,12 +8,13 @@ Start here. Do **not** recursively inspect the whole folder by default.
 
 1. `README.md`
 2. `docs/llm_project_context.md`
-3. `data/README.md`
-4. `milestones/README.md`
-5. The relevant milestone's `README.md`
-6. That milestone's `requirements.md`
-7. That milestone's `notebook_summary.md`, if present
-8. Other Markdown notes only if they are relevant to the task
+3. `docs/agent_task_router.md`, if the task involves MS4 editing or result/report/video work
+4. `data/README.md`
+5. `milestones/README.md`
+6. The relevant milestone's `README.md`
+7. That milestone's `requirements.md`
+8. That milestone's `notebook_summary.md`, if present
+9. Other Markdown notes only if they are relevant to the task
 
 ## Artifacts Policy
 
