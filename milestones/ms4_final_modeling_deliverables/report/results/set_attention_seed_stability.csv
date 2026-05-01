@@ -1,4 +1,4 @@
 model_id,model_name,post_budget,epochs,n_seeds,mean_balanced_accuracy,std_balanced_accuracy,min_balanced_accuracy,max_balanced_accuracy
-set_attention_text_p200,Set Attention Text p=200,200,5,3,0.6792182313772477,0.003279885958776179,0.6754568556551633,0.681481922385226
-set_attention_text_shuffled_emotion_p200,Set Attention Text + Shuffled Emotion p=200,200,5,3,0.6767149713912567,0.001587573779755264,0.6749160771757186,0.6779199920697812
-set_attention_text_real_emotion_p200,Set Attention Text + Real Emotion p=200,200,5,3,0.6721920879991435,0.006227757594089403,0.6652958292651459,0.6774054868232107
+set_attention_text_p200,Set Attention Text p=200,200,5,3,0.6792001787320209,0.0022919751195622667,0.6774205793563105,0.6817864216093672
+set_attention_text_shuffled_emotion_p200,Set Attention Text + Shuffled Emotion p=200,200,5,3,0.6780599290983194,0.005757604817285209,0.6716452229997034,0.6827801180552229
+set_attention_text_real_emotion_p200,Set Attention Text + Real Emotion p=200,200,5,3,0.6732025888030053,0.001620006179650027,0.6715249000784966,0.6747579807420797

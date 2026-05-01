@@ -135,16 +135,48 @@ def add_post_controls(posts: pd.DataFrame, *, text_col: str = "text_masked") -> 
     return out
 
 
+def assign_post_budget_order(
+    posts: pd.DataFrame,
+    *,
+    seed: int,
+    author_col: str = "author",
+    row_col: str = "row_index",
+    order_col: str = "post_budget_order",
+) -> pd.DataFrame:
+    """Assign a deterministic pseudo-random post order within each author."""
+
+    missing = [col for col in (author_col, row_col) if col not in posts.columns]
+    if missing:
+        raise ValueError(f"Missing columns for post-budget ordering: {missing}")
+    out = posts.copy()
+    key = pd.DataFrame(
+        {
+            "seed": str(seed),
+            "author": out[author_col].astype(str),
+            "row": out[row_col].astype(str),
+        },
+        index=out.index,
+    )
+    out[order_col] = pd.util.hash_pandas_object(key, index=False).to_numpy(dtype=np.uint64)
+    return out
+
+
 def retain_post_budget(
     posts: pd.DataFrame,
     *,
     post_budget: int,
     author_col: str = "author",
+    order_col: str = "post_budget_order",
 ) -> pd.DataFrame:
     """Retain the same per-author post budget used by set-array construction."""
 
+    sort_cols = [author_col]
+    if order_col in posts.columns:
+        sort_cols.append(order_col)
+    if "row_index" in posts.columns:
+        sort_cols.append("row_index")
     return (
-        posts.sort_values([author_col])
+        posts.sort_values(sort_cols)
         .groupby(author_col, sort=True, group_keys=False)
         .head(post_budget)
         .copy()
@@ -199,6 +231,7 @@ def main() -> None:
         max_authors = args.max_authors_per_split or 32
         posts = sample_authors(posts, max_authors_per_split=max_authors, seed=args.seed)
     posts = add_post_controls(posts)
+    posts = assign_post_budget_order(posts, seed=args.seed)
     control_cols = ("post_token_length", "post_is_over_256", "post_log_token_length")
     embeddings, _manifest = read_embedding_cache(args.embedding_cache_dir)
     emotion = pd.read_parquet(args.emotion_feature_path)

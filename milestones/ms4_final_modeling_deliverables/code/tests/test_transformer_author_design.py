@@ -211,13 +211,32 @@ def test_post_controls_are_standardized_from_train_split_only() -> None:
 
 def test_post_budget_retention_matches_set_attention_arrays() -> None:
     script = _set_attention_script()
-    posts = _set_attention_posts().sample(frac=1.0, random_state=7)
+    posts = script.assign_post_budget_order(_set_attention_posts(), seed=7)
+    posts = posts.sample(frac=1.0, random_state=11)
 
     retained = script.retain_post_budget(posts, post_budget=2)
-    arrays = build_author_set_arrays(posts, feature_cols=("f0", "f1"), post_budget=2)
+    arrays = build_author_set_arrays(posts, feature_cols=("row_index",), post_budget=2)
+    retained_authors = retained.groupby("author", sort=True)["row_index"].apply(list)
+    array_rows = {
+        author: arrays.post_features[idx, arrays.post_mask[idx], 0].astype(int).tolist()
+        for idx, author in enumerate(arrays.author)
+    }
 
     assert len(retained) == len(arrays.author) * 2
     assert retained.groupby("author").size().eq(2).all()
+    assert array_rows == retained_authors.to_dict()
+
+
+def test_post_budget_order_is_seeded_and_stable() -> None:
+    script = _set_attention_script()
+    posts = _set_attention_posts()
+
+    first = script.assign_post_budget_order(posts, seed=1)
+    second = script.assign_post_budget_order(posts, seed=1)
+    different = script.assign_post_budget_order(posts, seed=2)
+
+    assert first["post_budget_order"].equals(second["post_budget_order"])
+    assert not first["post_budget_order"].equals(different["post_budget_order"])
 
 
 def test_set_attention_training_is_reproducible_with_seed() -> None:

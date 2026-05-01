@@ -92,10 +92,10 @@ The executed notebook and tracked result artifacts include the corrected baselin
 
 Headline test mean balanced accuracy:
 
-- Set Attention Text + Controls, 200-post budget: 0.6883
-- Set Attention Text, 200-post budget: 0.6815
-- Set Attention Text + Shuffled Emotion, 200-post budget: 0.6773
-- Set Attention Text + Real Emotion, 200-post budget: 0.6653
+- Set Attention Text + Controls, 200-post budget: 0.6879
+- Set Attention Text, 200-post budget: 0.6784
+- Set Attention Text + Shuffled Emotion, 200-post budget: 0.6716
+- Set Attention Text + Real Emotion, 200-post budget: 0.6715
 - TF-IDF Logistic: 0.6512
 - Frozen MiniLM Text: 0.6293
 - GRU Text + Emotion: 0.6223
@@ -103,7 +103,7 @@ Headline test mean balanced accuracy:
 - GRU Text Inverse Weight: 0.5855
 - Majority: 0.5000
 
-These tracked results support the updated MS4 direction: the robust model family is the 200-post set/attention author transformer, not the GRU. The revised seeded runs and post-budget-specific train-only standardized controls make the emotion story more cautious: real emotion is below text-only in the main p200 matched comparison, and shuffled emotion or text-only can match or exceed it under some seeds/training lengths. The final writeup therefore emphasizes author-level transformer modeling as the robust gain and describes emotion as a suggestive transferred representation rather than a decisive standalone improvement.
+These tracked results support the updated MS4 direction: the robust model family is the 200-post set/attention author transformer, not the GRU. The revised seeded runs and post-budget-specific train-only standardized controls make the emotion story more cautious: real emotion is below text-only in the main p200 matched comparison by point estimate, and shuffled emotion or text-only can match or exceed it under some seeds/training lengths. The final writeup therefore emphasizes author-level transformer modeling as the robust gain and describes emotion as a suggestive transferred representation rather than a decisive standalone improvement.
 
 ## Updated Transformer Author Design
 
@@ -117,7 +117,7 @@ The current implementation supports the final scientific claim by adding transfo
 - frozen transformer author classifiers using post-embedding summaries
 - set/attention author transformer over unordered post embeddings
 - mean-pooling and mean-plus-std pooling ablations for the author transformer
-- 50 versus 200 retained-post budget sensitivity
+- 50 versus 200 retained-post budget sensitivity using a deterministic seed/hash post order within each author
 - supplemental p200 seed stability and 10/20 max-epoch-cap sensitivity with early stopping for text-only, real-emotion, and shuffled-emotion variants
 - supervised post-level transformer fine-tuning excluded from the MS4 mainline because it changes the estimand and reintroduces post-label noise
 

@@ -1260,19 +1260,21 @@ def save_pipeline_diagram(output_dir: Path) -> Path:
     if path.exists():
         return path
 
-    fig, ax = plt.subplots(figsize=(11, 3.2))
+    fig, ax = plt.subplots(figsize=(12, 4.2))
     ax.axis("off")
     boxes = [
-        ("Reddit posts\nmasked MBTI terms", 0.08),
-        ("Stage 1 emotion\nprobabilities", 0.30),
-        ("Stage 2 GRU\ntext + optional emotion", 0.52),
-        ("Mean author\nprobability aggregation", 0.74),
-        ("Validation thresholds\nfinal author metrics", 0.92),
+        ("Reddit authors\nmany posts each", 0.10, 0.68, PALETTE["blue"]),
+        ("Mask MBTI terms\nsplit by author", 0.32, 0.68, PALETTE["blue"]),
+        ("Frozen MiniLM\npost embeddings", 0.54, 0.80, PALETTE["teal"]),
+        ("Frozen emotion\nprobabilities", 0.54, 0.56, PALETTE["gold"]),
+        ("Shuffled emotion\nnegative control", 0.54, 0.32, PALETTE["red"]),
+        ("Set/attention\nauthor model", 0.78, 0.68, PALETTE["blue"]),
+        ("Held-out author\nmetrics", 0.94, 0.68, PALETTE["ink"]),
     ]
-    for text, x in boxes:
+    for text, x, y, color in boxes:
         ax.text(
             x,
-            0.5,
+            y,
             text,
             ha="center",
             va="center",
@@ -1280,20 +1282,40 @@ def save_pipeline_diagram(output_dir: Path) -> Path:
             bbox={
                 "boxstyle": "round,pad=0.45",
                 "facecolor": "#F3F6FA",
-                "edgecolor": PALETTE["blue"],
+                "edgecolor": color,
                 "linewidth": 1.4,
             },
             transform=ax.transAxes,
         )
-    for left, right in zip(boxes[:-1], boxes[1:], strict=True):
+    arrows = [
+        ((0.18, 0.68), (0.24, 0.68)),
+        ((0.40, 0.68), (0.46, 0.80)),
+        ((0.40, 0.68), (0.46, 0.56)),
+        ((0.40, 0.68), (0.46, 0.32)),
+        ((0.62, 0.80), (0.70, 0.70)),
+        ((0.62, 0.56), (0.70, 0.66)),
+        ((0.62, 0.32), (0.70, 0.62)),
+        ((0.86, 0.68), (0.90, 0.68)),
+    ]
+    for start, end in arrows:
         ax.annotate(
             "",
-            xy=(right[1] - 0.08, 0.5),
-            xytext=(left[1] + 0.08, 0.5),
+            xy=end,
+            xytext=start,
             xycoords=ax.transAxes,
             textcoords=ax.transAxes,
             arrowprops={"arrowstyle": "->", "color": PALETTE["ink"], "linewidth": 1.4},
         )
+    ax.text(
+        0.54,
+        0.10,
+        "Posts aggregate into authors; evaluation is author-level only.",
+        ha="center",
+        va="center",
+        fontsize=10,
+        color=PALETTE["ink"],
+        transform=ax.transAxes,
+    )
     fig.tight_layout()
     fig.savefig(path, dpi=200, bbox_inches="tight")
     plt.close(fig)

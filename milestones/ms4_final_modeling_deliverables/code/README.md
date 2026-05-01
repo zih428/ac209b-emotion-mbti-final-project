@@ -65,6 +65,8 @@ Current notebook coverage:
 
 The set/attention training entry point fixes the requested seed before model initialization, uses a seeded PyTorch `DataLoader` generator for shuffled training batches, and standardizes post-level control columns with training-split statistics inside each post-budget setting. The set/attention truncation control uses a 256-token indicator to match the frozen MiniLM embedding cache.
 
+Post-budget comparisons use a deterministic seed/hash order within each author, so the p50 setting is a stable pseudo-random retained-post budget rather than the first 50 rows after text sorting.
+
 ## Environment Management
 
 Use `uv` from this directory as the dependency source of truth:

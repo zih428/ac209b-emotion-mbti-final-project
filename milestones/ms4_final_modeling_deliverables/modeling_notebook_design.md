@@ -157,7 +157,7 @@ New transformer-centered core:
 - Emotion-only author baseline using aggregate emotion probabilities.
 - Set/attention author transformer over each author's unordered post embeddings, with text-only, text plus real emotion, text plus shuffled emotion, text plus controls, and text plus real emotion plus controls.
 - Mean-pooling and mean-plus-std pooling ablations for the set/attention author transformer.
-- A two-level post-budget sensitivity for author transformer models, using 50 versus 200 retained posts per author.
+- A two-level post-budget sensitivity for author transformer models, using 50 versus 200 retained posts per author selected by deterministic seed/hash post order.
 - A small supplemental stability check for the planned high-history 200-post set/attention setting: two additional seeds at 5 epochs and 10/20 max-epoch-cap sensitivity, with early stopping enabled, for text-only, text plus real emotion, and text plus shuffled emotion.
 - Unified emotion-increment analysis across GRU, frozen-transformer, and set/attention-transformer families.
 

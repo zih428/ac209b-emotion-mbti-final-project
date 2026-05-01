@@ -129,17 +129,23 @@ def build_author_set_arrays(
     post_budget: int,
     author_col: str = "author",
     split_col: str = "split",
+    post_order_col: str = "post_budget_order",
     target_cols: tuple[str, ...] = TARGET_COLUMNS,
 ) -> AuthorSetArrays:
     """Create padded unordered post sets for author-level attention models."""
 
     validate_required_columns(posts, [author_col, split_col, *feature_cols, *target_cols])
+    sort_cols = [author_col]
+    if post_order_col in posts.columns:
+        sort_cols.append(post_order_col)
+    if "row_index" in posts.columns:
+        sort_cols.append("row_index")
     authors = []
     splits = []
     targets = []
     features = []
     masks = []
-    for author, group in posts.sort_values([author_col]).groupby(author_col, sort=True):
+    for author, group in posts.sort_values(sort_cols).groupby(author_col, sort=True):
         group = group.head(post_budget)
         values = group[list(feature_cols)].to_numpy(dtype=np.float32)
         mask = np.zeros(post_budget, dtype=bool)
