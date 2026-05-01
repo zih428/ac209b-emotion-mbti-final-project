@@ -65,6 +65,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--epochs", type=int, default=None)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--max-authors-per-split", type=int, default=None)
+    parser.add_argument(
+        "--set-variants",
+        nargs="+",
+        choices=sorted(SET_VARIANTS),
+        default=sorted(SET_VARIANTS),
+        help="Subset of set/attention variants to train.",
+    )
+    parser.add_argument(
+        "--skip-pooling",
+        action="store_true",
+        help="Skip mean-pooling MLP ablations for supplemental runs.",
+    )
     parser.add_argument("--seed", type=int, default=209066)
     return parser.parse_args()
 
@@ -161,28 +173,29 @@ def main() -> None:
     histories = []
     epochs = args.epochs if args.epochs is not None else (5 if args.full_run else 1)
 
-    # Pooling ablations use the same author feature table and an MLP probe.
-    author_features, schema = build_author_feature_table(
-        posts,
-        embeddings,
-        emotion_features=emotion,
-        max_length=config.frozen_embedding_max_length,
-    )
-    for model_id, cols in {
-        "mean_pool_mlp_text": schema.text_mean,
-        "mean_std_pool_mlp_text": schema.text_mean + schema.text_std,
-    }.items():
-        logger.step("Training pooling ablation", model_id=model_id, n_features=len(cols))
-        result, _models = train_author_probe(
-            author_features.fillna(0.0),
-            model_id=model_id,
-            feature_cols=cols,
-            classifier="mlp",
-            seed=args.seed,
+    if not args.skip_pooling:
+        # Pooling ablations use the same author feature table and an MLP probe.
+        author_features, schema = build_author_feature_table(
+            posts,
+            embeddings,
+            emotion_features=emotion,
+            max_length=config.frozen_embedding_max_length,
         )
-        summaries.append(write_set_artifacts(model_id, result.author_scores, args.output_dir))
-        result.metrics.to_csv(args.output_dir / f"metrics_{model_id}.csv", index=False)
-        result.thresholds.to_csv(args.output_dir / f"thresholds_{model_id}.csv", index=False)
+        for model_id, cols in {
+            "mean_pool_mlp_text": schema.text_mean,
+            "mean_std_pool_mlp_text": schema.text_mean + schema.text_std,
+        }.items():
+            logger.step("Training pooling ablation", model_id=model_id, n_features=len(cols))
+            result, _models = train_author_probe(
+                author_features.fillna(0.0),
+                model_id=model_id,
+                feature_cols=cols,
+                classifier="mlp",
+                seed=args.seed,
+            )
+            summaries.append(write_set_artifacts(model_id, result.author_scores, args.output_dir))
+            result.metrics.to_csv(args.output_dir / f"metrics_{model_id}.csv", index=False)
+            result.thresholds.to_csv(args.output_dir / f"thresholds_{model_id}.csv", index=False)
 
     emb_cols = embedding_columns(merged)
     control_cols = ("post_token_length", "post_is_over_128", "post_log_token_length")
@@ -209,7 +222,8 @@ def main() -> None:
     }
 
     for post_budget in args.post_budgets:
-        for model_id_base, feature_key in SET_VARIANTS.items():
+        for model_id_base in args.set_variants:
+            feature_key = SET_VARIANTS[model_id_base]
             model_id = f"{model_id_base}_p{post_budget}"
             frame = frames[feature_key]
             cols = feature_sets[feature_key]
@@ -244,6 +258,11 @@ def main() -> None:
         "n_posts": int(len(merged)),
         "n_authors": int(merged["author"].nunique()),
         "post_budgets": args.post_budgets,
+        "epochs": int(epochs),
+        "batch_size": int(args.batch_size),
+        "seed": int(args.seed),
+        "set_variants": args.set_variants,
+        "skip_pooling": bool(args.skip_pooling),
         "model_summaries": summaries,
         "output_dir": str(args.output_dir),
     }

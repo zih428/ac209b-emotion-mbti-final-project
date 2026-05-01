@@ -72,6 +72,7 @@ Current notebook transformer-author coverage:
 - frozen transformer author result table from `scripts/run_transformer_author_models.py`
 - set/attention author result table from `scripts/run_set_attention_author_models.py`
 - paired bootstrap delta table for real-emotion-minus-text and shuffled-emotion-minus-text deltas
+- supplemental p200 seed-stability and epoch-sensitivity tables/figures for text, real-emotion, and shuffled-emotion set/attention variants
 - future-work note excluding supervised post-level transformer fine-tuning from the MS4 mainline
 
 ## Environment Management
@@ -146,6 +147,10 @@ uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id 
 uv run --extra full python scripts/cache_transformer_embeddings.py
 uv run --extra full python scripts/run_transformer_author_models.py --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max256
 uv run --extra full python scripts/run_set_attention_author_models.py --full-run --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max256
+uv run --extra full python scripts/run_set_attention_author_models.py --full-run --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max256 --output-dir artifacts/runs/set_attention_author_p200_e5_seed209067 --post-budgets 200 --epochs 5 --seed 209067 --skip-pooling --set-variants set_attention_text set_attention_text_real_emotion set_attention_text_shuffled_emotion
+uv run --extra full python scripts/run_set_attention_author_models.py --full-run --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max256 --output-dir artifacts/runs/set_attention_author_p200_e5_seed209068 --post-budgets 200 --epochs 5 --seed 209068 --skip-pooling --set-variants set_attention_text set_attention_text_real_emotion set_attention_text_shuffled_emotion
+uv run --extra full python scripts/run_set_attention_author_models.py --full-run --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max256 --output-dir artifacts/runs/set_attention_author_p200_e10_seed209066 --post-budgets 200 --epochs 10 --seed 209066 --skip-pooling --set-variants set_attention_text set_attention_text_real_emotion set_attention_text_shuffled_emotion
+uv run --extra full python scripts/run_set_attention_author_models.py --full-run --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max256 --output-dir artifacts/runs/set_attention_author_p200_e20_seed209066 --post-budgets 200 --epochs 20 --seed 209066 --skip-pooling --set-variants set_attention_text set_attention_text_real_emotion set_attention_text_shuffled_emotion
 uv run --extra full python scripts/aggregate_report_results.py
 ```
 

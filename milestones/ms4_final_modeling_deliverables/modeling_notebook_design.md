@@ -1,8 +1,8 @@
-# MS4 Tentative Modeling and Notebook Design
+# MS4 Modeling and Notebook Design
 
 Status: **design reference plus implementation checklist; MiniLM transformer-author MS4 results are now generated in tracked report artifacts**.
 
-This document records the proposed scientific plan for the MS4 code notebook. It is meant to guide implementation, report writing, and video planning, but should be revised if experiments reveal that a different design is more defensible.
+This document records the scientific plan for the MS4 code notebook. It guides implementation, report writing, and video planning, and should be revised if experiments reveal that a different design is more defensible.
 
 ## Design Thesis
 
@@ -158,6 +158,7 @@ New transformer-centered core:
 - Set/attention author transformer over each author's unordered post embeddings, with text-only, text plus real emotion, text plus shuffled emotion, text plus controls, and text plus real emotion plus controls.
 - Mean-pooling and mean-plus-std pooling ablations for the set/attention author transformer.
 - A two-level post-budget sensitivity for author transformer models, using 50 versus 200 retained posts per author.
+- A small supplemental stability check for the winning 200-post set/attention setting: two additional seeds at 5 epochs and 10/20 epoch sensitivity for text-only, text plus real emotion, and text plus shuffled emotion.
 - Unified emotion-increment analysis across GRU, frozen-transformer, and set/attention-transformer families.
 
 Out of scope for the core:
@@ -166,7 +167,7 @@ Out of scope for the core:
 - Supervised post-level MiniLM or DistilBERT MBTI fine-tuning as a report-facing model.
 - DeBERTa-base or other heavier encoders on the full Reddit corpus.
 - Uncapped 13M-post transformer training or inference.
-- Large multi-seed transformer grids.
+- Large multi-seed transformer grids beyond the small 200-post set/attention stability check.
 
 This is not a deliberately minimized scope. It is a tighter scientific scope: run the transformer author experiments needed to test incremental emotion information, and exclude experiments that would mainly turn MS4 into a model-capacity contest.
 
@@ -381,7 +382,21 @@ Purpose:
 - Tests whether the author transformer needs many posts or whether a smaller sampled budget preserves most of the signal.
 - Helps manage compute and supports a practical final recommendation.
 
-### 14. Excluded Supervised Post-Level Transformer Ceiling
+### 14. Supplemental Stability Checks
+
+For the strongest 200-post set/attention setting, run a compact robustness check rather than a large grid:
+
+- Repeat the 5-epoch p200 text-only, text-plus-real-emotion, and text-plus-shuffled-emotion variants with two additional seeds.
+- Run p200 epoch sensitivity at 10 and 20 epochs for the same three variants.
+- Report these as supporting diagnostics, not as a separate model search.
+
+Purpose:
+
+- Tests whether the real-emotion increment is stable enough to describe as more than a single-seed artifact.
+- Tests whether the p200 set/attention ranking is sensitive to short training.
+- Keeps the additional compute tied to the main scientific comparison.
+
+### 15. Excluded Supervised Post-Level Transformer Ceiling
 
 Do not include a supervised post-level MiniLM or DistilBERT MBTI fine-tuning run in the MS4 main experiment design.
 
@@ -577,6 +592,7 @@ The main notebook should be readable as a complete final-project artifact. Helpe
     - Train or load set/attention transformer text-only, text-plus-shuffled-emotion, text-plus-real-emotion, text-plus-controls, and text-plus-real-emotion-plus-controls models.
     - Include the mean-pooling or mean-plus-std ablation using the same embeddings.
     - Include 50 versus 200 retained-post budget sensitivity.
+    - Include supplemental seed stability and epoch sensitivity for the 200-post text, real-emotion, and shuffled-emotion variants.
     - Treat this as the second major transformer result block.
 
 12. **Excluded Supervised Transformer Ceiling**
@@ -696,6 +712,8 @@ Recommended figures:
 16. Bootstrap confidence intervals for matched real-emotion-minus-text and shuffled-emotion-minus-text deltas.
 17. Final model confusion matrices.
 18. Post-budget and pooling ablation plot for set/attention transformer.
+19. Supplemental p200 set/attention seed-stability plot.
+20. Supplemental p200 set/attention epoch-sensitivity plot.
 
 Avoid text-heavy figures. Captions should explain the modeling decision supported by each visualization.
 

@@ -41,6 +41,14 @@ def test_summary_sorts_by_test_balanced_accuracy() -> None:
     assert "| B | 0.7000 |" in module.markdown_summary_table(summary)
 
 
+def test_set_attention_display_name_prefers_longest_prefix() -> None:
+    module = _load_script_module()
+
+    name = module.set_attention_display_name("set_attention_text_real_emotion_p200")
+
+    assert name == "Set Attention Text + Real Emotion p=200"
+
+
 def test_transformer_delta_table_uses_test_split_only(tmp_path: Path) -> None:
     module = _load_script_module()
     targets = module.TARGETS

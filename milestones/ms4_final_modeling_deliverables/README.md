@@ -13,7 +13,7 @@ Requirements and deadlines below summarize `requirements.md`, which was transcri
 | Path | Purpose |
 |---|---|
 | `requirements.md` | Markdown summary of the MS4 requirement page. |
-| `tentative_modeling_notebook_design.md` | Current MS4 experiment and notebook design, including transformer-author experiments. |
+| `modeling_notebook_design.md` | Current MS4 experiment and notebook design, including transformer-author experiments. |
 | `artifacts/requirements_ms4_final_modeling_deliverables.png` | Screenshot of the MS4 requirement page. |
 | `report/results/` | Tracked report-ready CSV/PNG result artifacts used by the executed notebook. |
 | `video/` | Video script, recording notes, and video link notes. |
@@ -74,7 +74,7 @@ The video should cover, roughly in order:
 
 ## Implemented MS4 Modeling Summary
 
-The expanded experiment design is preserved in `tentative_modeling_notebook_design.md`.
+The expanded experiment design is preserved in `modeling_notebook_design.md`.
 The executed notebook and tracked result artifacts include the corrected baseline layer and transformer-author layer:
 
 - masked Reddit preprocessing through KaggleHub
@@ -101,7 +101,7 @@ Headline test mean balanced accuracy:
 - GRU Text Inverse Weight: 0.5855
 - Majority: 0.5000
 
-These tracked results support the updated MS4 direction: the strongest current model is the 200-post set/attention author transformer, not the GRU. The emotion story is nuanced: real emotion helps the 200-post set/attention model on the headline mean balanced accuracy, while frozen mean/std probes and 50-post set/attention do not show the same improvement. The report should emphasize matched real-versus-shuffled deltas rather than a blanket claim that emotion always helps.
+These tracked results support the updated MS4 direction: the strongest current family is the 200-post set/attention author transformer, not the GRU. Supplemental seed and epoch checks make the emotion story more cautious: real emotion is competitive and sometimes improves over text-only, but shuffled emotion and text-only can match or exceed it under some seeds/training lengths. The report should emphasize author-level transformer modeling as the robust gain and describe emotion as suggestive transferred signal rather than a decisive standalone improvement.
 
 ## Updated Transformer Author Design
 
@@ -116,6 +116,7 @@ The current implementation supports the final scientific claim by adding transfo
 - set/attention author transformer over unordered post embeddings
 - mean-pooling and mean-plus-std pooling ablations for the author transformer
 - 50 versus 200 retained-post budget sensitivity
+- supplemental p200 seed stability and 10/20 epoch sensitivity for text-only, real-emotion, and shuffled-emotion variants
 - supervised post-level transformer fine-tuning excluded from the MS4 mainline because it changes the estimand and reintroduces post-label noise
 
 Implemented code entry points:

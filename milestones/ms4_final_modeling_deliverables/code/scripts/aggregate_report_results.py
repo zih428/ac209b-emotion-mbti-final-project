@@ -164,6 +164,41 @@ TRANSFORMER_AUTHOR_DIR = CODE_DIR / "artifacts" / "runs" / "transformer_author"
 SET_ATTENTION_AUTHOR_DIR = CODE_DIR / "artifacts" / "runs" / "set_attention_author"
 TARGETS = ("target_E", "target_S", "target_T", "target_J")
 
+SUPPLEMENTAL_SET_ATTENTION_RUNS = [
+    {
+        "run_id": "p200_e5_seed209067",
+        "analysis": "multi_seed",
+        "seed": 209067,
+        "epochs": 5,
+        "post_budget": 200,
+        "run_dir": CODE_DIR / "artifacts" / "runs" / "set_attention_author_p200_e5_seed209067",
+    },
+    {
+        "run_id": "p200_e5_seed209068",
+        "analysis": "multi_seed",
+        "seed": 209068,
+        "epochs": 5,
+        "post_budget": 200,
+        "run_dir": CODE_DIR / "artifacts" / "runs" / "set_attention_author_p200_e5_seed209068",
+    },
+    {
+        "run_id": "p200_e10_seed209066",
+        "analysis": "epoch_sensitivity",
+        "seed": 209066,
+        "epochs": 10,
+        "post_budget": 200,
+        "run_dir": CODE_DIR / "artifacts" / "runs" / "set_attention_author_p200_e10_seed209066",
+    },
+    {
+        "run_id": "p200_e20_seed209066",
+        "analysis": "epoch_sensitivity",
+        "seed": 209066,
+        "epochs": 20,
+        "post_budget": 200,
+        "run_dir": CODE_DIR / "artifacts" / "runs" / "set_attention_author_p200_e20_seed209066",
+    },
+]
+
 TRANSFORMER_DISPLAY_NAMES = {
     "frozen_text_mean_std": "Frozen Text",
     "frozen_emotion_only": "Emotion Only",
@@ -729,7 +764,11 @@ def read_optional_metrics(run_dir: Path, display_names: dict[str, str]) -> pd.Da
 
 
 def set_attention_display_name(model_id: str) -> str:
-    for prefix, name in SET_ATTENTION_DISPLAY_PREFIXES.items():
+    for prefix, name in sorted(
+        SET_ATTENTION_DISPLAY_PREFIXES.items(),
+        key=lambda item: len(item[0]),
+        reverse=True,
+    ):
         suffix = model_id.removeprefix(prefix)
         if suffix != model_id:
             return f"{name}{suffix.replace('_p', ' p=')}"
@@ -773,6 +812,159 @@ def make_optional_summary(metrics: pd.DataFrame) -> pd.DataFrame:
     )
     summary["post_budget"] = summary["model_id"].str.extract(r"_p(\d+)$").astype(float)
     return summary
+
+
+def make_set_attention_supplemental_summary() -> pd.DataFrame:
+    frames = []
+    for spec in SUPPLEMENTAL_SET_ATTENTION_RUNS:
+        run_dir = spec["run_dir"]
+        if not run_dir.exists():
+            continue
+        metrics = read_optional_set_metrics(run_dir)
+        if metrics.empty:
+            continue
+        summary = make_optional_summary(metrics)
+        summary["run_id"] = spec["run_id"]
+        summary["analysis"] = spec["analysis"]
+        summary["seed"] = spec["seed"]
+        summary["epochs"] = spec["epochs"]
+        summary["post_budget"] = spec["post_budget"]
+        frames.append(summary)
+    columns = [
+        "analysis",
+        "run_id",
+        "seed",
+        "epochs",
+        "post_budget",
+        "model_id",
+        "model_name",
+        "balanced_accuracy",
+        "f1",
+        "minority_recall",
+        "roc_auc",
+        "average_precision",
+    ]
+    if not frames:
+        return pd.DataFrame(columns=columns)
+    return pd.concat(frames, ignore_index=True)[columns].sort_values(
+        ["analysis", "epochs", "seed", "balanced_accuracy"],
+        ascending=[True, True, True, False],
+    )
+
+
+def make_set_attention_stability_summary(
+    supplemental_summary: pd.DataFrame,
+    set_attention_summary: pd.DataFrame,
+) -> pd.DataFrame:
+    key_models = {
+        "set_attention_text_p200",
+        "set_attention_text_real_emotion_p200",
+        "set_attention_text_shuffled_emotion_p200",
+    }
+    base = set_attention_summary.loc[set_attention_summary["model_id"].isin(key_models)].copy()
+    if not base.empty:
+        base["analysis"] = "multi_seed"
+        base["run_id"] = "p200_e5_seed209066"
+        base["seed"] = 209066
+        base["epochs"] = 5
+        base["post_budget"] = 200
+    extra = supplemental_summary.loc[
+        (supplemental_summary["analysis"] == "multi_seed")
+        & (supplemental_summary["model_id"].isin(key_models))
+    ].copy()
+    combined = pd.concat([base, extra], ignore_index=True)
+    if combined.empty:
+        return pd.DataFrame(
+            columns=[
+                "model_id",
+                "model_name",
+                "post_budget",
+                "epochs",
+                "n_seeds",
+                "mean_balanced_accuracy",
+                "std_balanced_accuracy",
+                "min_balanced_accuracy",
+                "max_balanced_accuracy",
+            ]
+        )
+    return (
+        combined.groupby(["model_id", "model_name", "post_budget", "epochs"], as_index=False)
+        .agg(
+            n_seeds=("seed", "nunique"),
+            mean_balanced_accuracy=("balanced_accuracy", "mean"),
+            std_balanced_accuracy=("balanced_accuracy", "std"),
+            min_balanced_accuracy=("balanced_accuracy", "min"),
+            max_balanced_accuracy=("balanced_accuracy", "max"),
+        )
+        .sort_values("mean_balanced_accuracy", ascending=False)
+    )
+
+
+def save_set_attention_stability_plot(stability: pd.DataFrame, output_dir: Path) -> Path:
+    fig, ax = plt.subplots(figsize=(9, 4.8))
+    plot_df = stability.sort_values("mean_balanced_accuracy", ascending=True)
+    ax.barh(
+        plot_df["model_name"],
+        plot_df["mean_balanced_accuracy"],
+        xerr=plot_df["std_balanced_accuracy"].fillna(0.0),
+        color=PALETTE["blue"],
+        alpha=0.9,
+    )
+    ax.axvline(0.5, color=PALETTE["muted"], linestyle="--", linewidth=1)
+    ax.set_xlabel("Mean test balanced accuracy across seeds")
+    ax.set_ylabel("")
+    upper = max(0.72, float(plot_df["mean_balanced_accuracy"].max()) + 0.04)
+    ax.set_xlim(0.58, upper)
+    for y, value in enumerate(plot_df["mean_balanced_accuracy"]):
+        ax.text(value + 0.003, y, f"{value:.3f}", va="center")
+    fig.tight_layout()
+    path = output_dir / "fig_set_attention_seed_stability.png"
+    fig.savefig(path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return path
+
+
+def save_set_attention_epoch_sensitivity_plot(
+    supplemental_summary: pd.DataFrame,
+    set_attention_summary: pd.DataFrame,
+    output_dir: Path,
+) -> Path:
+    key_models = {
+        "set_attention_text_p200",
+        "set_attention_text_real_emotion_p200",
+        "set_attention_text_shuffled_emotion_p200",
+    }
+    base = set_attention_summary.loc[set_attention_summary["model_id"].isin(key_models)].copy()
+    if not base.empty:
+        base["analysis"] = "epoch_sensitivity"
+        base["run_id"] = "p200_e5_seed209066"
+        base["seed"] = 209066
+        base["epochs"] = 5
+        base["post_budget"] = 200
+    extra = supplemental_summary.loc[
+        (supplemental_summary["analysis"] == "epoch_sensitivity")
+        & (supplemental_summary["model_id"].isin(key_models))
+    ].copy()
+    plot_df = pd.concat([base, extra], ignore_index=True)
+    fig, ax = plt.subplots(figsize=(8.5, 4.8))
+    sns.lineplot(
+        data=plot_df,
+        x="epochs",
+        y="balanced_accuracy",
+        hue="model_name",
+        marker="o",
+        ax=ax,
+    )
+    ax.axhline(0.5, color=PALETTE["muted"], linestyle="--", linewidth=1)
+    ax.set_xlabel("Training epochs")
+    ax.set_ylabel("Test balanced accuracy")
+    ax.set_ylim(0.60, max(0.72, float(plot_df["balanced_accuracy"].max()) + 0.03))
+    ax.legend(title="")
+    fig.tight_layout()
+    path = output_dir / "fig_set_attention_epoch_sensitivity.png"
+    fig.savefig(path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    return path
 
 
 def threshold_series(path: Path) -> pd.Series:
@@ -1090,6 +1282,13 @@ def markdown_summary_table(summary: pd.DataFrame) -> str:
     return "\n".join(lines)
 
 
+def markdown_balanced_accuracy_table(rows: list[tuple[str, float]]) -> str:
+    lines = ["| model | test mean balanced accuracy |", "|---|---:|"]
+    for name, value in rows:
+        lines.append(f"| {name} | {value:.4f} |")
+    return "\n".join(lines)
+
+
 def main() -> None:
     args = parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -1114,6 +1313,11 @@ def main() -> None:
     frozen_transformer_summary = make_optional_summary(frozen_transformer_metrics)
     set_attention_metrics = read_optional_set_metrics(SET_ATTENTION_AUTHOR_DIR)
     set_attention_summary = make_optional_summary(set_attention_metrics)
+    set_attention_supplemental_summary = make_set_attention_supplemental_summary()
+    set_attention_stability_summary = make_set_attention_stability_summary(
+        set_attention_supplemental_summary,
+        set_attention_summary,
+    )
     transformer_deltas = make_all_transformer_deltas()
     transformer_status = make_transformer_artifact_status(
         frozen_transformer_metrics,
@@ -1138,6 +1342,10 @@ def main() -> None:
     frozen_transformer_summary_path = args.output_dir / "frozen_transformer_model_summary.csv"
     set_attention_metrics_path = args.output_dir / "set_attention_model_metrics.csv"
     set_attention_summary_path = args.output_dir / "set_attention_model_summary.csv"
+    set_attention_supplemental_path = (
+        args.output_dir / "set_attention_supplemental_summary.csv"
+    )
+    set_attention_stability_path = args.output_dir / "set_attention_seed_stability.csv"
     transformer_deltas_path = args.output_dir / "transformer_emotion_deltas.csv"
     transformer_status_path = args.output_dir / "transformer_artifact_status.csv"
     metrics.to_csv(metrics_path, index=False)
@@ -1155,6 +1363,8 @@ def main() -> None:
     frozen_transformer_summary.to_csv(frozen_transformer_summary_path, index=False)
     set_attention_metrics.to_csv(set_attention_metrics_path, index=False)
     set_attention_summary.to_csv(set_attention_summary_path, index=False)
+    set_attention_supplemental_summary.to_csv(set_attention_supplemental_path, index=False)
+    set_attention_stability_summary.to_csv(set_attention_stability_path, index=False)
     transformer_deltas.to_csv(transformer_deltas_path, index=False)
     transformer_status.to_csv(transformer_status_path, index=False)
 
@@ -1205,7 +1415,36 @@ def main() -> None:
                 "fig_transformer_emotion_deltas.png",
             )
         )
+    if not set_attention_stability_summary.empty:
+        figure_paths.append(save_set_attention_stability_plot(set_attention_stability_summary, args.output_dir))
+    if not set_attention_supplemental_summary.empty:
+        figure_paths.append(
+            save_set_attention_epoch_sensitivity_plot(
+                set_attention_supplemental_summary,
+                set_attention_summary,
+                args.output_dir,
+            )
+        )
 
+    transformer_top_rows = []
+    for model_id in [
+        "set_attention_text_real_emotion_p200",
+        "set_attention_text_p200",
+        "frozen_text_mean_std",
+    ]:
+        source = (
+            set_attention_summary
+            if model_id.startswith("set_attention")
+            else frozen_transformer_summary
+        )
+        match = source.loc[source["model_id"] == model_id]
+        if not match.empty:
+            transformer_top_rows.append(
+                (
+                    str(match["model_name"].iloc[0]),
+                    float(match["balanced_accuracy"].iloc[0]),
+                )
+            )
     readme = args.output_dir / "README.md"
     readme.write_text(
         "\n".join(
@@ -1222,6 +1461,12 @@ def main() -> None:
                 "",
                 markdown_summary_table(summary),
                 "",
+                "Transformer-author top-line test mean balanced accuracy:",
+                "",
+                markdown_balanced_accuracy_table(transformer_top_rows)
+                if transformer_top_rows
+                else "_Transformer-author result artifacts are not available._",
+                "",
                 "Additional diagnostics included here:",
                 "",
                 "- MS4 pipeline diagram.",
@@ -1232,7 +1477,8 @@ def main() -> None:
                 "- Source-vs-Reddit emotion distribution comparison.",
                 "- Token-length sensitivity audit for 128 vs 256 token limits.",
                 "- Fixed text-only GRU 128 vs 256 max-length training sensitivity.",
-                "- Transformer-author artifact status, plus transformer summaries and paired deltas when full transformer runs are present locally.",
+                "- Transformer-author artifact status, transformer summaries, paired deltas, seed stability, and epoch sensitivity.",
+                "- Supplemental p200 set/attention checks show that the author-level transformer direction is stable, while the emotion-specific increment is seed/training sensitive.",
                 "",
             ]
         ),
@@ -1276,6 +1522,12 @@ def main() -> None:
             "set_attention_summary_path": output_manifest_path(
                 set_attention_summary_path, args.output_dir
             ),
+            "set_attention_supplemental_summary_path": output_manifest_path(
+                set_attention_supplemental_path, args.output_dir
+            ),
+            "set_attention_seed_stability_path": output_manifest_path(
+                set_attention_stability_path, args.output_dir
+            ),
             "transformer_deltas_path": output_manifest_path(
                 transformer_deltas_path, args.output_dir
             ),
@@ -1289,6 +1541,11 @@ def main() -> None:
             else 0,
             "n_set_attention_models": int(set_attention_summary["model_id"].nunique())
             if not set_attention_summary.empty
+            else 0,
+            "n_set_attention_supplemental_runs": int(
+                set_attention_supplemental_summary["run_id"].nunique()
+            )
+            if not set_attention_supplemental_summary.empty
             else 0,
         },
     )

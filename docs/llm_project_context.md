@@ -76,7 +76,7 @@ Current research question:
 
 ## MS4 Direction
 
-MS4 has a completed corrected GRU/TF-IDF baseline layer in `../milestones/ms4_final_modeling_deliverables/code/` and `../milestones/ms4_final_modeling_deliverables/report/results/`. The current scientific design is recorded in `../milestones/ms4_final_modeling_deliverables/tentative_modeling_notebook_design.md`.
+MS4 has completed corrected GRU/TF-IDF baseline results and MiniLM transformer-author results in `../milestones/ms4_final_modeling_deliverables/code/` and `../milestones/ms4_final_modeling_deliverables/report/results/`. The current scientific design is recorded in `../milestones/ms4_final_modeling_deliverables/modeling_notebook_design.md`.
 
 The final deliverables should still build from the MS3 diagnosis:
 

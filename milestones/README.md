@@ -6,7 +6,7 @@
 | MS1 | `ms1_group_formation/` | Historical | `README.md`, `requirements.md` |
 | MS2 | `ms2_data_wrangling_project_redefinition/` | Submitted | `README.md`, `requirements.md`, `notebook_summary.md`, `submitted/ms2_submitted_summary.md`, presenter script |
 | MS3 | `ms3_eda_baseline_pipeline/` | Submitted | `README.md`, `requirements.md`, `notebook_summary.md`, `submitted/ms3_submitted_slides_text.md`, presenter script |
-| MS4 | `ms4_final_modeling_deliverables/` | Baseline layer implemented; transformer author design updated | `README.md`, `requirements.md`, `tentative_modeling_notebook_design.md`, `code/`, `report/`, `video/` |
+| MS4 | `ms4_final_modeling_deliverables/` | Baseline and transformer author results implemented | `README.md`, `requirements.md`, `modeling_notebook_design.md`, `code/`, `report/`, `video/` |
 
 ## Naming Conventions
 
