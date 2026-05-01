@@ -67,6 +67,27 @@ def compact_artifact_contract() -> pd.DataFrame:
             "submit": False,
         },
         {
+            "artifact": "transformer_embeddings/<run_id>/embeddings_*.parquet",
+            "level": "post",
+            "required_columns": "row_index, author, split, emb_000 ... emb_n",
+            "purpose": "Frozen transformer post embeddings used for author-level transformer models.",
+            "submit": False,
+        },
+        {
+            "artifact": "author_features_<run_id>.parquet",
+            "level": "author",
+            "required_columns": "author, split, targets, text embedding summaries, emotion summaries, controls",
+            "purpose": "Author-level feature table for frozen transformer probes and controls.",
+            "submit": False,
+        },
+        {
+            "artifact": "shuffled_emotion_<run_id>.parquet",
+            "level": "author/post",
+            "required_columns": "same identifiers and emotion feature columns as source table",
+            "purpose": "Split-preserving negative-control emotion features.",
+            "submit": False,
+        },
+        {
             "artifact": "model_checkpoints/",
             "level": "model",
             "required_columns": "n/a",
@@ -75,6 +96,77 @@ def compact_artifact_contract() -> pd.DataFrame:
         },
     ]
     return pd.DataFrame(rows)
+
+
+def transformer_embedding_metadata(
+    *,
+    model_id: str,
+    tokenizer_max_length: int,
+    preprocessing_fingerprint: str,
+    input_rows: int,
+    embedding_dim: int,
+    shard_size: int,
+    backend: str,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    metadata = {
+        "artifact_type": "ms4_transformer_post_embeddings",
+        "model_id": model_id,
+        "tokenizer_max_length": tokenizer_max_length,
+        "preprocessing_fingerprint": preprocessing_fingerprint,
+        "input_rows": int(input_rows),
+        "embedding_dim": int(embedding_dim),
+        "shard_size": int(shard_size),
+        "backend": backend,
+    }
+    if extra:
+        metadata.update(extra)
+    return metadata
+
+
+def author_feature_metadata(
+    *,
+    embedding_manifest_fingerprint: str,
+    emotion_manifest_fingerprint: str | None,
+    feature_schema: dict[str, list[str]],
+    post_budget: int | None,
+    scaler_fit_split: str = "train",
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    metadata = {
+        "artifact_type": "ms4_author_feature_table",
+        "embedding_manifest_fingerprint": embedding_manifest_fingerprint,
+        "emotion_manifest_fingerprint": emotion_manifest_fingerprint,
+        "feature_schema": feature_schema,
+        "post_budget": post_budget,
+        "scaler_fit_split": scaler_fit_split,
+    }
+    if extra:
+        metadata.update(extra)
+    return metadata
+
+
+def shuffled_emotion_metadata(
+    *,
+    source_fingerprint: str,
+    seed: int,
+    split_col: str,
+    shuffled_columns: list[str],
+    level: str,
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    metadata = {
+        "artifact_type": "ms4_shuffled_emotion_negative_control",
+        "source_fingerprint": source_fingerprint,
+        "seed": int(seed),
+        "split_col": split_col,
+        "shuffled_columns": shuffled_columns,
+        "level": level,
+        "shuffle_scope": "within_split",
+    }
+    if extra:
+        metadata.update(extra)
+    return metadata
 
 
 def base_compact_metadata(

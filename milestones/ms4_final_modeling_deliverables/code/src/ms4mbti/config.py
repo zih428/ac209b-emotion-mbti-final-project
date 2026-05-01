@@ -12,6 +12,16 @@ TEAM_MEMBERS = ("Harry Hu", "Tom Shan", "Wendy Wang", "Kemeng Zhang")
 
 DIMENSIONS = ("EI", "NS", "FT", "JP")
 EMOTION_LABELS = ("sadness", "joy", "love", "anger", "fear", "surprise")
+EMOTION_FEATURE_COLUMNS = tuple(f"emotion_{label}" for label in EMOTION_LABELS)
+DEFAULT_FROZEN_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+FROZEN_EMBEDDING_FEATURE_GROUPS = (
+    "text_embedding_mean",
+    "text_embedding_std",
+    "real_emotion_aggregates",
+    "shuffled_emotion_aggregates",
+    "activity_length_controls",
+)
+AUTHOR_POST_BUDGETS = (50, 200)
 
 
 @dataclass(frozen=True)
@@ -57,6 +67,12 @@ class RunConfig:
     max_posts_per_author: int = 200
     stage1_max_length: int = 64
     stage2_max_length: int = 128
+    frozen_embedding_model_id: str = DEFAULT_FROZEN_EMBEDDING_MODEL
+    frozen_embedding_max_length: int = 256
+    frozen_embedding_batch_size: int = 256
+    embedding_shard_size: int = 50000
+    author_post_budgets: tuple[int, ...] = AUTHOR_POST_BUDGETS
+    cache_version: str = "ms4_transformer_author_v1"
     train_size: float = 0.70
     val_size: float = 0.15
     test_size: float = 0.15
@@ -81,6 +97,11 @@ class RunConfig:
             "max_posts_per_author": self.max_posts_per_author,
             "stage1_max_length": self.stage1_max_length,
             "stage2_max_length": self.stage2_max_length,
+            "frozen_embedding_model_id": self.frozen_embedding_model_id,
+            "frozen_embedding_max_length": self.frozen_embedding_max_length,
+            "embedding_shard_size": self.embedding_shard_size,
+            "author_post_budgets": list(self.author_post_budgets),
+            "cache_version": self.cache_version,
             "train_size": self.train_size,
             "val_size": self.val_size,
             "test_size": self.test_size,

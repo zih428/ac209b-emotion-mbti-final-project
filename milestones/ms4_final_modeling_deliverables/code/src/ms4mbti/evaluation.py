@@ -196,3 +196,154 @@ def majority_baseline_author_scores(
         majority_positive = float(train_authors[target].mean() >= 0.5)
         out[f"score_majority_{target}"] = majority_positive
     return out
+
+
+def _threshold_lookup(thresholds: pd.Series | dict[str, float]) -> dict[str, float]:
+    return dict(thresholds)
+
+
+def _threshold_metric_value(
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    *,
+    threshold: float,
+    metric: str,
+) -> float:
+    y_pred = (y_score >= threshold).astype(int)
+    if metric == "balanced_accuracy":
+        if len(np.unique(y_true)) < 2:
+            return 0.5
+        return float(balanced_accuracy_score(y_true, y_pred))
+    if metric == "f1":
+        return float(f1_score(y_true, y_pred, zero_division=0))
+    if metric == "minority_recall":
+        return float(recall_score(y_true, y_pred, zero_division=0))
+    if metric == "minority_precision":
+        return float(precision_score(y_true, y_pred, zero_division=0))
+    raise ValueError(
+        "metric must be balanced_accuracy, f1, minority_recall, or minority_precision"
+    )
+
+
+def paired_bootstrap_delta(
+    baseline: pd.DataFrame,
+    comparison: pd.DataFrame,
+    *,
+    baseline_score_cols: tuple[str, ...],
+    comparison_score_cols: tuple[str, ...],
+    baseline_thresholds: pd.Series | dict[str, float],
+    comparison_thresholds: pd.Series | dict[str, float],
+    comparison_name: str,
+    target_cols: tuple[str, ...] = TARGET_COLUMNS,
+    author_col: str = "author",
+    metric: str = "balanced_accuracy",
+    n_bootstrap: int = 2000,
+    seed: int = 209066,
+) -> pd.DataFrame:
+    """Paired bootstrap CI for comparison-minus-baseline author metrics."""
+
+    validate_required_columns(baseline, [author_col, *baseline_score_cols, *target_cols])
+    validate_required_columns(comparison, [author_col, *comparison_score_cols, *target_cols])
+    if len(baseline_score_cols) != len(target_cols) or len(comparison_score_cols) != len(target_cols):
+        raise ValueError("score column tuples must match target_cols length")
+
+    base_cols = [author_col, *target_cols, *baseline_score_cols]
+    comp_cols = [author_col, *comparison_score_cols]
+    joined = baseline[base_cols].merge(
+        comparison[comp_cols],
+        on=author_col,
+        how="inner",
+        validate="one_to_one",
+        suffixes=("_baseline", "_comparison"),
+    )
+    if joined.empty:
+        raise ValueError("No paired authors available for bootstrap delta")
+
+    base_threshold_lookup = _threshold_lookup(baseline_thresholds)
+    comp_threshold_lookup = _threshold_lookup(comparison_thresholds)
+    rng = np.random.default_rng(seed)
+    rows = []
+    target_deltas: list[float] = []
+
+    for target, base_score, comp_score in zip(
+        target_cols, baseline_score_cols, comparison_score_cols, strict=True
+    ):
+        base_threshold = float(base_threshold_lookup.get(target, 0.5))
+        comp_threshold = float(comp_threshold_lookup.get(target, 0.5))
+        point = _threshold_metric_value(
+            joined[target].to_numpy(dtype=int),
+            joined[comp_score].to_numpy(dtype=float),
+            threshold=comp_threshold,
+            metric=metric,
+        ) - _threshold_metric_value(
+            joined[target].to_numpy(dtype=int),
+            joined[base_score].to_numpy(dtype=float),
+            threshold=base_threshold,
+            metric=metric,
+        )
+        target_deltas.append(point)
+        boot = []
+        for _ in range(n_bootstrap):
+            sample_idx = rng.integers(0, len(joined), size=len(joined))
+            sample = joined.iloc[sample_idx]
+            comp_value = _threshold_metric_value(
+                sample[target].to_numpy(dtype=int),
+                sample[comp_score].to_numpy(dtype=float),
+                threshold=comp_threshold,
+                metric=metric,
+            )
+            base_value = _threshold_metric_value(
+                sample[target].to_numpy(dtype=int),
+                sample[base_score].to_numpy(dtype=float),
+                threshold=base_threshold,
+                metric=metric,
+            )
+            boot.append(comp_value - base_value)
+        rows.append(
+            {
+                "comparison": comparison_name,
+                "metric": metric,
+                "target": target,
+                "point_estimate": float(point),
+                "ci_lower": float(np.nanpercentile(boot, 2.5)),
+                "ci_upper": float(np.nanpercentile(boot, 97.5)),
+                "n_bootstrap": int(n_bootstrap),
+                "n_authors": int(len(joined)),
+            }
+        )
+
+    boot_mean = []
+    for _ in range(n_bootstrap):
+        sample_idx = rng.integers(0, len(joined), size=len(joined))
+        sample = joined.iloc[sample_idx]
+        deltas = []
+        for target, base_score, comp_score in zip(
+            target_cols, baseline_score_cols, comparison_score_cols, strict=True
+        ):
+            comp_value = _threshold_metric_value(
+                sample[target].to_numpy(dtype=int),
+                sample[comp_score].to_numpy(dtype=float),
+                threshold=float(comp_threshold_lookup.get(target, 0.5)),
+                metric=metric,
+            )
+            base_value = _threshold_metric_value(
+                sample[target].to_numpy(dtype=int),
+                sample[base_score].to_numpy(dtype=float),
+                threshold=float(base_threshold_lookup.get(target, 0.5)),
+                metric=metric,
+            )
+            deltas.append(comp_value - base_value)
+        boot_mean.append(float(np.nanmean(deltas)))
+    rows.append(
+        {
+            "comparison": comparison_name,
+            "metric": metric,
+            "target": "mean",
+            "point_estimate": float(np.nanmean(target_deltas)),
+            "ci_lower": float(np.nanpercentile(boot_mean, 2.5)),
+            "ci_upper": float(np.nanpercentile(boot_mean, 97.5)),
+            "n_bootstrap": int(n_bootstrap),
+            "n_authors": int(len(joined)),
+        }
+    )
+    return pd.DataFrame(rows)
