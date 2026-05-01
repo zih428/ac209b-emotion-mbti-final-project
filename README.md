@@ -2,6 +2,12 @@
 
 This folder is organized for both human review and LLM-assisted work. Agents should read `AGENTS.md` first. Markdown files are the default project memory; original notebooks, slides, PDFs, screenshots, and DOCX files live under `artifacts/` for verification.
 
+## MS4 Pipeline Snapshot
+
+![MS4 author-level modeling pipeline](milestones/ms4_final_modeling_deliverables/report/results/fig_ms4_pipeline_diagram.png)
+
+The final MS4 pipeline treats Reddit users as the prediction unit. Posts are masked for direct MBTI leakage, split by author, converted into frozen MiniLM text embeddings and text-derived emotion probabilities, and evaluated through author-level models. The main result comes from the set/attention author model; real emotion is tested against shuffled-emotion and control baselines rather than treated as an independent causal signal.
+
 ## Provenance
 
 The Markdown layer is based on:

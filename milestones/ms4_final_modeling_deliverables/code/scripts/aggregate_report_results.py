@@ -1230,6 +1230,10 @@ def save_emotion_distribution_plot(distribution: pd.DataFrame, output_dir: Path)
 
 
 def save_pipeline_diagram(output_dir: Path) -> Path:
+    path = output_dir / "fig_ms4_pipeline_diagram.png"
+    if path.exists():
+        return path
+
     fig, ax = plt.subplots(figsize=(11, 3.2))
     ax.axis("off")
     boxes = [
@@ -1265,7 +1269,6 @@ def save_pipeline_diagram(output_dir: Path) -> Path:
             arrowprops={"arrowstyle": "->", "color": PALETTE["ink"], "linewidth": 1.4},
         )
     fig.tight_layout()
-    path = output_dir / "fig_ms4_pipeline_diagram.png"
     fig.savefig(path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     return path
