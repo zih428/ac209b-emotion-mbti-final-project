@@ -103,7 +103,7 @@ Headline test mean balanced accuracy:
 - GRU Text Inverse Weight: 0.5855
 - Majority: 0.5000
 
-These tracked results support the updated MS4 direction: the robust model family is the 200-post set/attention author transformer, not the GRU. The revised seeded runs and post-budget-specific train-only standardized controls make the emotion story more cautious: real emotion is below text-only in the main p200 matched comparison by point estimate, and shuffled emotion or text-only can match or exceed it under some seeds/training lengths. The final writeup therefore emphasizes author-level transformer modeling as the robust gain and describes emotion as a suggestive transferred representation rather than a decisive standalone improvement.
+These tracked results support the updated MS4 direction: the robust model family is the 200-post set/attention author transformer, not the GRU. The revised seeded runs and post-budget-specific train-only standardized controls make the emotion story more cautious: real emotion is below text-only in the main p200 matched comparison by point estimate, and shuffled emotion or text-only can match or exceed it under some seeds/training lengths. The final writeup therefore emphasizes author-level transformer modeling as the robust gain and describes emotion-derived features as informative but not robustly incremental beyond text representations.
 
 ## Updated Transformer Author Design
 

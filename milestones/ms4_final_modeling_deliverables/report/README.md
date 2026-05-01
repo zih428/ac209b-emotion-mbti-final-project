@@ -15,4 +15,4 @@ Recommended report arc:
 
 Avoid dumping notebook output. The report should read like a concise paper.
 
-Do not frame emotion probabilities as independent measurements or causal mediators. The defensible claim is incremental predictive information beyond matched text representations under author-level evaluation.
+Do not frame emotion probabilities as independent measurements or causal mediators. The defensible claim is that the project tests whether emotion-derived transferred representations add incremental predictive information beyond matched text representations under author-level evaluation; the current result is informative but not robustly incremental.
