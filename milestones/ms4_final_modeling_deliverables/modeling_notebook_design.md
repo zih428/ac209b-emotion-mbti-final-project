@@ -23,9 +23,9 @@ The key final comparison is not "new model versus old broken baseline." It is:
 
 > text-only versus text-plus-emotion under the same preprocessing, split, aggregation, and threshold-tuning protocol, repeated across increasingly strong text representations.
 
-The scientific status of the emotion channel must be stated precisely. The emotion probabilities are not an independent modality or ground-truth measurements of users' emotions. They are transferred, model-derived representations computed from the same Reddit text. Therefore, the defensible claim is not causal:
+The scientific status of the emotion channel must be stated precisely. The emotion probabilities are not an independent modality or ground-truth measurements of users' emotions. They are transferred, model-derived representations computed from the same Reddit text. Therefore, the defensible question is not causal:
 
-> transferred emotion representations provide incremental predictive information beyond matched text representations under author-level evaluation.
+> Do transferred emotion representations provide incremental predictive information beyond matched text representations under author-level evaluation?
 
 This framing matters for both methods and interpretation. If emotion-only features perform well, the report treats them as a compressed text-derived proxy representation, not as evidence that true emotional state directly determines MBTI type. If text-plus-emotion improves over matched text-only models while shuffled-emotion controls do not, the report can claim that the structured emotion representation captures useful author-level information that is not fully recovered by that text representation. The implemented MS4 results are more cautious: author-level set/attention modeling is robust, while the emotion-specific increment is not stable enough to claim as a standalone gain.
 

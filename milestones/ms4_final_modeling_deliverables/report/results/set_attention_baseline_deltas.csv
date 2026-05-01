@@ -1,0 +1,16 @@
+comparison,metric,target,point_estimate,ci_lower,ci_upper,n_bootstrap,n_authors
+Set Attention Text p=200 minus TF-IDF Logistic,balanced_accuracy,target_E,0.021053093162738845,-0.0073676252580523625,0.05104558058285053,2000,1563
+Set Attention Text p=200 minus TF-IDF Logistic,balanced_accuracy,target_S,0.039986282578875154,-0.01697352817111136,0.09658550776036522,2000,1563
+Set Attention Text p=200 minus TF-IDF Logistic,balanced_accuracy,target_T,0.03580110157235605,0.014090709483862082,0.056815463858553045,2000,1563
+Set Attention Text p=200 minus TF-IDF Logistic,balanced_accuracy,target_J,0.012115757407920258,-0.014436611091457894,0.03798611864053039,2000,1563
+Set Attention Text p=200 minus TF-IDF Logistic,balanced_accuracy,mean,0.027239058680472578,0.008896853082724417,0.04414220131487517,2000,1563
+Set Attention Text p=200 minus GRU Text + Emotion,balanced_accuracy,target_E,0.07851181282674691,0.048218540198725734,0.11198986744329316,2000,1563
+Set Attention Text p=200 minus GRU Text + Emotion,balanced_accuracy,target_S,0.08621399176954725,0.02907446400976605,0.1412041114196116,2000,1563
+Set Attention Text p=200 minus GRU Text + Emotion,balanced_accuracy,target_T,0.039619167769264774,0.01641863422478655,0.062244802089697404,2000,1563
+Set Attention Text p=200 minus GRU Text + Emotion,balanced_accuracy,target_J,0.02004677066986682,-0.006292824233983385,0.04576921328499176,2000,1563
+Set Attention Text p=200 minus GRU Text + Emotion,balanced_accuracy,mean,0.05609793575885644,0.036475404933761266,0.07387184996491197,2000,1563
+Set Attention Text p=200 minus GRU Text,balanced_accuracy,target_E,0.09461954853515109,0.06401774312382842,0.1265229253356535,2000,1563
+Set Attention Text p=200 minus GRU Text,balanced_accuracy,target_S,0.11823437193807562,0.06776339832604095,0.17050996597890156,2000,1563
+Set Attention Text p=200 minus GRU Text,balanced_accuracy,target_T,0.04142691569997026,0.018617879882360695,0.0640047258989532,2000,1563
+Set Attention Text p=200 minus GRU Text,balanced_accuracy,target_J,0.07361764977383922,0.044191588251943734,0.10174582538630507,2000,1563
+Set Attention Text p=200 minus GRU Text,balanced_accuracy,mean,0.08197462148675905,0.06340488186748648,0.10009771804855544,2000,1563

@@ -59,6 +59,7 @@ Current notebook coverage:
 - frozen transformer author result table from `scripts/run_transformer_author_models.py`
 - set/attention author result table from `scripts/run_set_attention_author_models.py`
 - paired bootstrap delta table for real-emotion-minus-text and shuffled-emotion-minus-text comparisons
+- paired bootstrap delta table for the clean p200 set/attention text model versus TF-IDF and corrected GRU baselines
 - supplemental p200 seed-stability and max-epoch-cap sensitivity tables/figures for text, real-emotion, and shuffled-emotion set/attention variants
 - full reproduction commands showing which scripts generate the training outputs consumed by the notebook
 - final takeaways suitable for report and video planning

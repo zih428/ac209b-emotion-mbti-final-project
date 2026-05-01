@@ -1,0 +1,3 @@
+stage,n_posts,n_authors,posts_with_any_term,post_share_with_any_term,authors_with_any_term,author_share_with_any_term,posts_with_own_type,post_share_with_own_type
+before_masking,13028455,11773,216846,0.0166440303167182,9232,0.7841671621506837,112294,0.0086191340416035
+after_masking,13028455,11773,0,0.0,0,0.0,0,0.0

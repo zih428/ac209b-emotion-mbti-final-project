@@ -88,6 +88,7 @@ The executed notebook and tracked result artifacts include the corrected baselin
 - frozen MiniLM post embeddings aggregated to author features
 - frozen transformer author probes with emotion-only, real-emotion, shuffled-emotion, and control variants
 - set/attention author transformer over unordered post sets with 50 versus 200 post-budget sensitivity
+- paired bootstrap comparisons of the clean p200 set/attention text model against TF-IDF and corrected GRU baselines
 - report-ready figures, tables, and interpretation in `code/cs1090b_ms4_main_group66.ipynb`
 
 Headline test mean balanced accuracy:
@@ -103,7 +104,7 @@ Headline test mean balanced accuracy:
 - GRU Text Inverse Weight: 0.5855
 - Majority: 0.5000
 
-These tracked results support the updated MS4 direction: the robust model family is the 200-post set/attention author transformer, not the GRU. The revised seeded runs and post-budget-specific train-only standardized controls make the emotion story more cautious: real emotion is below text-only in the main p200 matched comparison by point estimate, and shuffled emotion or text-only can match or exceed it under some seeds/training lengths. The final writeup therefore emphasizes author-level transformer modeling as the robust gain and describes emotion-derived features as informative but not robustly incremental beyond text representations.
+These tracked results support the updated MS4 direction: the robust model family is the 200-post set/attention author transformer, not the GRU. The clean p200 set/attention text model is higher than TF-IDF by +0.0272 mean balanced accuracy with a paired bootstrap 95% CI of [+0.0089, +0.0441]. The revised seeded runs and post-budget-specific train-only standardized controls make the emotion story more cautious: real emotion is below text-only in the main p200 matched comparison by point estimate, and shuffled emotion or text-only can match or exceed it under some seeds/training lengths. The final writeup therefore emphasizes author-level transformer modeling as the robust gain and describes emotion-derived features as informative but not robustly incremental beyond text representations.
 
 ## Updated Transformer Author Design
 

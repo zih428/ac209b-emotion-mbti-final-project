@@ -160,6 +160,7 @@ TEXT_GRU_128_DIR = CODE_DIR / "artifacts" / "runs" / "stage2_text_gru_full"
 TEXT_GRU_256_DIR = CODE_DIR / "artifacts" / "runs" / "stage2_text_gru_len256_full"
 EMOTION_CACHE = CODE_DIR / "artifacts" / "cache" / "emotion_probs_full.parquet"
 PREPROCESSED_POSTS = CODE_DIR / "artifacts" / "preprocessed" / "full" / "modeling_posts.parquet"
+PREPROCESSED_DIR = CODE_DIR / "artifacts" / "preprocessed" / "full"
 TRANSFORMER_AUTHOR_DIR = CODE_DIR / "artifacts" / "runs" / "transformer_author"
 SET_ATTENTION_AUTHOR_DIR = CODE_DIR / "artifacts" / "runs" / "set_attention_author"
 SET_ATTENTION_CONFUSION_MODEL_ID = "set_attention_text_p200"
@@ -723,6 +724,32 @@ def make_max_length_training_sensitivity() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def make_preprocessing_summary_table() -> pd.DataFrame:
+    path = PREPROCESSED_DIR / "summary.json"
+    require_files({"preprocessing_summary": path})
+    summary = json.loads(path.read_text(encoding="utf-8"))
+    keep = [
+        "manifest_fingerprint",
+        "n_modeling_authors",
+        "n_modeling_posts",
+        "split_method",
+        "split_warnings",
+    ]
+    return pd.DataFrame([{key: summary.get(key) for key in keep if key in summary}])
+
+
+def make_preprocessing_leakage_audit() -> pd.DataFrame:
+    path = PREPROCESSED_DIR / "mbti_leakage_audit.csv"
+    require_files({"preprocessing_leakage_audit": path})
+    return pd.read_csv(path)
+
+
+def make_preprocessing_split_balance() -> pd.DataFrame:
+    path = PREPROCESSED_DIR / "split_balance.csv"
+    require_files({"preprocessing_split_balance": path})
+    return pd.read_csv(path)
+
+
 def save_max_length_training_plot(sensitivity: pd.DataFrame, output_dir: Path) -> Path:
     fig, axes = plt.subplots(1, 2, figsize=(10, 4.5))
     sns.barplot(
@@ -1098,6 +1125,53 @@ def make_all_transformer_deltas() -> pd.DataFrame:
     )
 
 
+def make_set_attention_baseline_deltas(
+    author_inputs: dict[str, dict[str, Any]],
+    *,
+    n_bootstrap: int = 2000,
+) -> pd.DataFrame:
+    required = {
+        "set_attention_text_scores": SET_ATTENTION_CONFUSION_AUTHOR_SCORES,
+        "set_attention_text_thresholds": SET_ATTENTION_CONFUSION_THRESHOLDS,
+    }
+    if any(not path.exists() for path in required.values()):
+        return pd.DataFrame()
+
+    set_attention = pd.read_csv(required["set_attention_text_scores"])
+    set_attention = set_attention.loc[set_attention["split"] == "test"].copy()
+    set_attention_thresholds = threshold_series(required["set_attention_text_thresholds"])
+    set_attention_cols = make_score_columns(SET_ATTENTION_CONFUSION_MODEL_ID)
+
+    frames = []
+    for baseline_id in [
+        "linear_tfidf_author",
+        "stage2_text_emotion_gru",
+        "stage2_text_gru_sqrt",
+    ]:
+        payload = author_inputs[baseline_id]
+        baseline = payload["author_scores"].loc[
+            payload["author_scores"]["split"] == "test"
+        ].copy()
+        baseline_thresholds = threshold_series(AUTHOR_SCORE_SOURCES[baseline_id]["thresholds"])
+        baseline_cols = score_columns(payload["score_prefix"])
+        frames.append(
+            paired_bootstrap_delta(
+                baseline,
+                set_attention,
+                baseline_score_cols=baseline_cols,
+                comparison_score_cols=set_attention_cols,
+                baseline_thresholds=baseline_thresholds,
+                comparison_thresholds=set_attention_thresholds,
+                comparison_name=(
+                    f"{set_attention_display_name(SET_ATTENTION_CONFUSION_MODEL_ID)} "
+                    f"minus {DISPLAY_NAMES[baseline_id]}"
+                ),
+                n_bootstrap=n_bootstrap,
+            )
+        )
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
 def make_transformer_artifact_status(
     frozen_metrics: pd.DataFrame,
     set_metrics: pd.DataFrame,
@@ -1369,6 +1443,9 @@ def main() -> None:
     threshold_sensitivity = make_threshold_objective_sensitivity(gru_diagnostic_author_scores)
     token_length_sensitivity = make_token_length_sensitivity()
     max_length_training_sensitivity = make_max_length_training_sensitivity()
+    preprocessing_summary = make_preprocessing_summary_table()
+    preprocessing_leakage_audit = make_preprocessing_leakage_audit()
+    preprocessing_split_balance = make_preprocessing_split_balance()
     frozen_transformer_metrics = read_optional_metrics(
         TRANSFORMER_AUTHOR_DIR,
         TRANSFORMER_DISPLAY_NAMES,
@@ -1382,6 +1459,7 @@ def main() -> None:
         set_attention_summary,
     )
     transformer_deltas = make_all_transformer_deltas()
+    set_attention_baseline_deltas = make_set_attention_baseline_deltas(author_inputs)
     transformer_status = make_transformer_artifact_status(
         frozen_transformer_metrics,
         set_attention_metrics,
@@ -1402,6 +1480,9 @@ def main() -> None:
     max_length_training_sensitivity_path = (
         args.output_dir / "max_length_training_sensitivity.csv"
     )
+    preprocessing_summary_path = args.output_dir / "preprocessing_summary.csv"
+    preprocessing_leakage_path = args.output_dir / "preprocessing_mbti_leakage_audit.csv"
+    preprocessing_split_balance_path = args.output_dir / "preprocessing_split_balance.csv"
     frozen_transformer_metrics_path = args.output_dir / "frozen_transformer_model_metrics.csv"
     frozen_transformer_summary_path = args.output_dir / "frozen_transformer_model_summary.csv"
     set_attention_metrics_path = args.output_dir / "set_attention_model_metrics.csv"
@@ -1411,6 +1492,9 @@ def main() -> None:
     )
     set_attention_stability_path = args.output_dir / "set_attention_seed_stability.csv"
     transformer_deltas_path = args.output_dir / "transformer_emotion_deltas.csv"
+    set_attention_baseline_deltas_path = (
+        args.output_dir / "set_attention_baseline_deltas.csv"
+    )
     transformer_status_path = args.output_dir / "transformer_artifact_status.csv"
     metrics.to_csv(metrics_path, index=False)
     summary.to_csv(summary_path, index=False)
@@ -1424,6 +1508,9 @@ def main() -> None:
     threshold_sensitivity.to_csv(threshold_sensitivity_path, index=False)
     token_length_sensitivity.to_csv(token_length_sensitivity_path, index=False)
     max_length_training_sensitivity.to_csv(max_length_training_sensitivity_path, index=False)
+    preprocessing_summary.to_csv(preprocessing_summary_path, index=False)
+    preprocessing_leakage_audit.to_csv(preprocessing_leakage_path, index=False)
+    preprocessing_split_balance.to_csv(preprocessing_split_balance_path, index=False)
     frozen_transformer_metrics.to_csv(frozen_transformer_metrics_path, index=False)
     frozen_transformer_summary.to_csv(frozen_transformer_summary_path, index=False)
     set_attention_metrics.to_csv(set_attention_metrics_path, index=False)
@@ -1431,6 +1518,7 @@ def main() -> None:
     set_attention_supplemental_summary.to_csv(set_attention_supplemental_path, index=False)
     set_attention_stability_summary.to_csv(set_attention_stability_path, index=False)
     transformer_deltas.to_csv(transformer_deltas_path, index=False)
+    set_attention_baseline_deltas.to_csv(set_attention_baseline_deltas_path, index=False)
     transformer_status.to_csv(transformer_status_path, index=False)
 
     figure_paths = [
@@ -1546,7 +1634,9 @@ def main() -> None:
                 "Additional diagnostics included here:",
                 "",
                 "- MS4 pipeline diagram.",
+                "- Tracked compact preprocessing summary, split-balance, and MBTI leakage audit tables.",
                 "- Bootstrap confidence intervals over test authors.",
+                "- Paired bootstrap comparison of Set Attention Text p=200 against TF-IDF and GRU baselines.",
                 "- GRU text+emotion threshold-tuning curves.",
                 "- Threshold objective sensitivity for balanced accuracy vs F1.",
                 "- GRU text+emotion baseline confusion matrices.",
@@ -1591,6 +1681,15 @@ def main() -> None:
             "max_length_training_sensitivity_path": output_manifest_path(
                 max_length_training_sensitivity_path, args.output_dir
             ),
+            "preprocessing_summary_path": output_manifest_path(
+                preprocessing_summary_path, args.output_dir
+            ),
+            "preprocessing_leakage_path": output_manifest_path(
+                preprocessing_leakage_path, args.output_dir
+            ),
+            "preprocessing_split_balance_path": output_manifest_path(
+                preprocessing_split_balance_path, args.output_dir
+            ),
             "frozen_transformer_metrics_path": output_manifest_path(
                 frozen_transformer_metrics_path, args.output_dir
             ),
@@ -1611,6 +1710,9 @@ def main() -> None:
             ),
             "transformer_deltas_path": output_manifest_path(
                 transformer_deltas_path, args.output_dir
+            ),
+            "set_attention_baseline_deltas_path": output_manifest_path(
+                set_attention_baseline_deltas_path, args.output_dir
             ),
             "transformer_status_path": output_manifest_path(
                 transformer_status_path, args.output_dir

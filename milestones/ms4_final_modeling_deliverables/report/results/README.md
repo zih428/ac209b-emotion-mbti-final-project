@@ -29,7 +29,9 @@ Transformer-author top-line test mean balanced accuracy:
 Additional diagnostics included here:
 
 - MS4 pipeline diagram.
+- Tracked compact preprocessing summary, split-balance, and MBTI leakage audit tables.
 - Bootstrap confidence intervals over test authors.
+- Paired bootstrap comparison of Set Attention Text p=200 against TF-IDF and GRU baselines.
 - GRU text+emotion threshold-tuning curves.
 - Threshold objective sensitivity for balanced accuracy vs F1.
 - GRU text+emotion baseline confusion matrices.

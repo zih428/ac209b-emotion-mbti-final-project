@@ -4,7 +4,7 @@ Use this file as the compact project briefing. For agent behavior and read-order
 
 ## Source Basis
 
-This briefing summarizes the original artifacts, submitted MS2/MS3 materials, presenter notes, TA feedback, team clarifications, and the KaggleHub API access check recorded in `../data/README.md`. The MS4 direction section is a carry-forward recommendation derived from MS3 results and team clarifications, not a completed MS4 result.
+This briefing summarizes the original artifacts, submitted MS2/MS3 materials, presenter notes, TA feedback, team clarifications, the KaggleHub API access check recorded in `../data/README.md`, and the completed MS4 modeling artifacts.
 
 ## Identity
 
@@ -97,4 +97,4 @@ The updated MS4 design adds a stricter transformer author-representation layer:
 - Compare frozen transformer author features and set/attention author transformers against mean-pooling baselines.
 - Exclude supervised post-level transformer fine-tuning from the MS4 mainline because it changes the estimand and reintroduces post-label noise.
 
-Avoid treating the updated design as a model-capacity contest. The strongest story is a controlled author-level test of whether transferred emotion representations add incremental information beyond matched text representations.
+Avoid treating the updated design as a model-capacity contest. The strongest story is a controlled author-level test of whether transferred emotion representations add incremental information beyond matched text representations. The current result is that emotion-derived features are informative but not robustly incremental beyond text representations.
