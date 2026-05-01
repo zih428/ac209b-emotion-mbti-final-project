@@ -20,7 +20,7 @@ Sections labeled as recommendations, carry-forward notes, or agent instructions 
 - **Canvas project number:** 66
 - **Team:** Harry Hu, Tom Shan, Wendy Wang, Kemeng Zhang
 - **Topic:** Emotion-informed MBTI prediction from Reddit writing
-- **Current state:** Milestones 0-3 are historical/submitted materials. Milestone 4 has a corrected GRU/TF-IDF baseline layer implemented locally, with an updated transformer author-representation design pending implementation.
+- **Current state:** Milestones 0-3 are historical/submitted materials. Milestone 4 has implemented corrected GRU/TF-IDF baselines, frozen MiniLM author probes, and set/attention author-transformer experiments with tracked report-ready results.
 
 ## Core Research Question
 
@@ -43,7 +43,7 @@ Do text plus emotion-informed features improve author-level prediction of the fo
 | `milestones/ms1_group_formation/` | Group formation notes, requirements Markdown, and original artifacts. |
 | `milestones/ms2_data_wrangling_project_redefinition/` | MS2 summaries, presenter notes, TA feedback, requirements, and original artifacts. |
 | `milestones/ms3_eda_baseline_pipeline/` | MS3 summaries, slide text, presenter script, TA feedback, requirements, and original artifacts. |
-| `milestones/ms4_final_modeling_deliverables/` | Empty working area for final report, video, and code notebook. |
+| `milestones/ms4_final_modeling_deliverables/` | Final modeling work area with the executed MS4 notebook, helper code, report result files, and video/report planning notes. |
 
 ## Version Rules
 
@@ -64,4 +64,4 @@ Before writing or revising final code/report text, read:
 - `milestones/ms3_eda_baseline_pipeline/README.md`
 - `data/README.md`
 
-The current MS4 design keeps the completed corrected GRU/TF-IDF layer as baseline evidence, then adds transformer author representations to test the main question more rigorously. The key claim is not causal emotion prediction: emotion probabilities are text-derived transferred representations. The main comparison is matched `text + real emotion` versus `text-only`, checked against shuffled-emotion negative controls and activity/length controls.
+The current MS4 design keeps the completed corrected GRU/TF-IDF layer as baseline evidence, then adds transformer author representations to test the main question more rigorously. The key claim is not causal emotion prediction: emotion probabilities are text-derived transferred representations. The main comparison is matched `text + real emotion` versus `text-only`, checked against shuffled-emotion negative controls and activity/length controls. The strongest current result is the 200-post set/attention author transformer; the emotion-specific conclusion remains cautious after shuffled-control and stability checks.

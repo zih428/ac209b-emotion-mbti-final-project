@@ -126,7 +126,7 @@ Implemented code entry points:
 - `code/scripts/run_set_attention_author_models.py`
 - `code/scripts/aggregate_report_results.py`
 
-The main notebook includes executed cells for the design, artifact status, schema checks, transformer summaries, paired-delta tables, and report-facing figures. Large post-level embedding caches and run directories remain under `code/artifacts/` and are intentionally ignored by git; compact report artifacts are tracked under `report/results/`.
+The main notebook is now organized as a report-facing scientific narrative: framing, data safeguards, baseline models, transformer author models, emotion controls, stability checks, final takeaways, and references. Large post-level embedding caches and run directories remain outside the submission path; compact result tables and figures are tracked under `report/results/`.
 
 ## Suggested Success Metrics
 
