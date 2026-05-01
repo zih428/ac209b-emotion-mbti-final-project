@@ -1,6 +1,7 @@
 .DS_Store
 __pycache__/
 .ipynb_checkpoints/
+.pytest_cache/
 .venv/
 env/
 venv/
@@ -14,3 +15,10 @@ data/raw/
 *.log
 tmp/
 temp/
+
+# Generated MS4 local smoke/runtime outputs.
+milestones/ms4_final_modeling_deliverables/code/artifacts/figures_smoke/
+milestones/ms4_final_modeling_deliverables/code/artifacts/preprocessed/
+milestones/ms4_final_modeling_deliverables/code/artifacts/cache/
+milestones/ms4_final_modeling_deliverables/code/artifacts/models/
+milestones/ms4_final_modeling_deliverables/code/artifacts/runs/

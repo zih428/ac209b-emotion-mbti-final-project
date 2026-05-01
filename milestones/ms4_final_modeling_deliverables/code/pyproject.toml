@@ -1,0 +1,45 @@
+[project]
+name = "ms4mbti"
+version = "0.1.0"
+description = "AC 209b Project 66 MS4 emotion-informed MBTI modeling helpers"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "matplotlib>=3.9",
+    "nbformat>=5.10.4",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scikit-learn>=1.5",
+    "seaborn>=0.13",
+    "torch>=2.5",
+]
+
+[project.optional-dependencies]
+full = [
+    "datasets>=3.0,<5",
+    "kagglehub>=0.3,<2",
+    "tqdm>=4.66",
+    "transformers>=4.45,<5",
+]
+dev = [
+    "ipykernel>=6.29",
+    "nbclient>=0.10",
+    "pytest>=8.0",
+]
+
+[project.scripts]
+ms4-smoke = "ms4mbti.cli:smoke_main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ms4mbti"]
+
+[tool.uv]
+package = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
