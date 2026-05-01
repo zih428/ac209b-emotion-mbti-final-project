@@ -1,0 +1,16 @@
+epoch,train_loss,val_loss,model_id,model_name
+1,0.7220631703065798,0.7242249850768688,stage2_text_gru_sqrt,GRU Text
+2,0.7149472089144242,0.7199654976937396,stage2_text_gru_sqrt,GRU Text
+3,0.708098383809873,0.7204278487065607,stage2_text_gru_sqrt,GRU Text
+4,0.7007233751768115,0.7239223238357828,stage2_text_gru_sqrt,GRU Text
+1,1.0131920020032703,1.019626551423191,stage2_text_gru_inverse,GRU Text Inverse Weight
+2,1.0128776242551885,1.0196407799385796,stage2_text_gru_inverse,GRU Text Inverse Weight
+3,1.0118325383384617,1.019389113118826,stage2_text_gru_inverse,GRU Text Inverse Weight
+4,1.0068779817320197,1.0174160729016155,stage2_text_gru_inverse,GRU Text Inverse Weight
+5,0.9966903242043844,1.0185703549010694,stage2_text_gru_inverse,GRU Text Inverse Weight
+6,0.9853766329656014,1.0254941379482096,stage2_text_gru_inverse,GRU Text Inverse Weight
+1,0.7221651442948048,0.7244054309346459,stage2_text_emotion_gru,GRU Text + Emotion
+2,0.7157424162992209,0.7202504524760995,stage2_text_emotion_gru,GRU Text + Emotion
+3,0.7087507702572406,0.718897004881181,stage2_text_emotion_gru,GRU Text + Emotion
+4,0.7012965652424724,0.7213074931921053,stage2_text_emotion_gru,GRU Text + Emotion
+5,0.6923535812277097,0.726423795065604,stage2_text_emotion_gru,GRU Text + Emotion

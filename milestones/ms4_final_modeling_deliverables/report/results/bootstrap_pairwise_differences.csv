@@ -1,0 +1,3 @@
+comparison,metric,point_estimate,ci_lower,ci_upper,n_bootstrap
+GRU Text + Emotion minus GRU Text,balanced_accuracy,0.025842852515534673,0.0022441863255704296,0.04959060546723419,2000
+TF-IDF Logistic minus GRU Text + Emotion,balanced_accuracy,0.028253929896304163,0.005055775277642622,0.052885806893925115,2000

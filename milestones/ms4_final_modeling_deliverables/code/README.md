@@ -12,8 +12,13 @@ Current implementation entry points:
 
 | Path | Purpose |
 |---|---|
-| `cs1090b_ms4_main_group66.ipynb` | Main MS4 orchestration notebook. Default path runs smoke checks only and does not train. |
-| `src/ms4mbti/` | Importable helper package for preprocessing, splitting, weighting, metrics, cache metadata, baseline models, and progress reporting. |
+| `cs1090b_ms4_main_group66.ipynb` | Executed report-facing MS4 notebook with outputs embedded. It loads compact tracked results and does not launch long training. |
+| `src/ms4mbti/` | Importable helper package for preprocessing, splitting, weighting, metrics, cache metadata, baseline models, Stage 2 modeling, and progress reporting. |
+| `scripts/preprocess_reddit_ms4.py` | Full Reddit preprocessing, MBTI masking, author split, leakage audit, and token truncation audit. |
+| `scripts/cache_emotion_features.py` | DistilBERT emotion probability cache for Reddit posts. |
+| `scripts/run_author_baselines.py` | Majority and TF-IDF author-level baselines. |
+| `scripts/train_stage2_text_gru.py` | Text-only and text-plus-emotion Stage 2 GRU training/evaluation entry point. |
+| `scripts/aggregate_report_results.py` | Builds tracked report-ready CSV/PNG artifacts from local run outputs. |
 | `scripts/run_smoke_checks.py` | Command-line synthetic smoke test for the default non-training path. |
 | `tests/test_smoke.py` | Pytest wrapper for the same non-training smoke path. |
 | `pyproject.toml` / `uv.lock` | Reproducible dependency and package management through `uv`. |
@@ -33,24 +38,18 @@ Minimum sections:
 
 Current notebook coverage:
 
-- runtime flags for default, real-data smoke, and full-training paths
-- uv/package/hardware environment checks
-- MS3 failure diagnosis and MS4 controlled-experiment framing
-- optional real KaggleHub/Hugging Face data smoke cells
-- default synthetic modeling frame that uses the same preprocessing APIs
-- MBTI leakage, author-label conflict, split-balance, class-balance, and token-truncation audits
-- report-style visualization cells for leakage, class balance, retained posts per author, split balance, truncation exposure, and baseline metric comparison
-- author-balanced post weights and BCE `pos_weight` calculations
-- planned model comparison table
-- Stage 1 emotion classifier plan and diagnostic metric contract
-- majority and TF-IDF author baseline metric skeleton
-- main results schema and historical-vs-controlled table separation
-- Stage 2 GRU array/model construction dry run without training
-- validation-only class-weight recipe selection API demonstration
-- compact artifact contract for submitted author-level results
-- local smoke figure export to `artifacts/figures_smoke/`, ignored by git because those are reproducibility checks rather than final results
-- interpretation frame, limitations, broader impact notes, references, and AI assistance disclosure
-- explicit full-training launch order and guard
+- uv/package/hardware environment check
+- preprocessing, leakage, split-balance, and token-truncation audits
+- pipeline diagram and report artifact manifest
+- author-level model summary and per-dimension test metrics
+- bootstrap confidence intervals over test authors
+- emotion feature gain visualization
+- source-vs-Reddit emotion distribution comparison
+- GRU validation-loss curves
+- final text-plus-emotion GRU threshold tuning and confusion matrices
+- threshold-objective sensitivity for balanced accuracy versus F1
+- token-length audit and 128 versus 256 GRU training sensitivity
+- run-level commands, interpretation, references, and disclosure
 
 ## Environment Management
 
@@ -73,15 +72,6 @@ For the full training/data path, install the optional full dependencies:
 ```bash
 uv sync --extra full --extra dev
 ```
-
-Optional real data smoke checks can then be run by opening the notebook and setting:
-
-```python
-RUN_REAL_DATA_SMOKE = True
-RUN_FULL_TRAINING = False
-```
-
-This validates tiny public-data reads only; it does not start model training.
 
 Default quality check:
 
@@ -118,4 +108,17 @@ reddit_path = Path(
     )
 )
 reddit_raw = pd.read_csv(reddit_path, usecols=["author", "body", "mbti"])
+```
+
+Full local artifact build order:
+
+```bash
+uv run --extra full python scripts/preprocess_reddit_ms4.py
+uv run --extra full python scripts/run_author_baselines.py
+uv run --extra full python scripts/cache_emotion_features.py --output-path artifacts/cache/emotion_probs_full.parquet --batch-size 256 --log-every-batches 100
+uv run --extra full python scripts/train_stage2_text_gru.py --full-run
+uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_gru_inverse_full --pos-weight-variant inverse
+uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_emotion_gru_full --emotion-feature-path artifacts/cache/emotion_probs_full.parquet
+uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_gru_len256_full --max-length 256 --pos-weight-variant sqrt
+uv run --extra full python scripts/aggregate_report_results.py
 ```

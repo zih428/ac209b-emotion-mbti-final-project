@@ -1,0 +1,28 @@
+{
+  "bootstrap_differences_path": "bootstrap_pairwise_differences.csv",
+  "bootstrap_intervals_path": "bootstrap_model_intervals.csv",
+  "confusions_path": "final_confusion_matrices.csv",
+  "emotion_distribution_path": "emotion_distribution_source_vs_reddit.csv",
+  "figures": [
+    "fig_ms4_pipeline_diagram.png",
+    "fig_model_summary_balanced_accuracy.png",
+    "fig_bootstrap_balanced_accuracy_ci.png",
+    "fig_target_balanced_accuracy.png",
+    "fig_gru_validation_loss.png",
+    "fig_emotion_gain_by_target.png",
+    "fig_final_threshold_tuning_curves.png",
+    "fig_threshold_objective_sensitivity.png",
+    "fig_final_confusion_matrices.png",
+    "fig_source_vs_reddit_emotion_distribution.png",
+    "fig_token_length_sensitivity.png",
+    "fig_max_length_training_sensitivity.png"
+  ],
+  "histories_path": "gru_training_histories.csv",
+  "max_length_training_sensitivity_path": "max_length_training_sensitivity.csv",
+  "metrics_path": "all_model_metrics.csv",
+  "n_models": 5,
+  "summary_path": "model_summary.csv",
+  "threshold_curves_path": "final_threshold_tuning_curves.csv",
+  "threshold_sensitivity_path": "threshold_objective_sensitivity.csv",
+  "token_length_sensitivity_path": "token_length_sensitivity.csv"
+}

@@ -1,0 +1,13 @@
+source,emotion,share
+Emotion source labels,sadness,0.16665
+Emotion source labels,joy,0.16665
+Emotion source labels,love,0.16665
+Emotion source labels,anger,0.1667
+Emotion source labels,fear,0.1667
+Emotion source labels,surprise,0.16665
+Reddit inferred,sadness,0.1134520024061203
+Reddit inferred,joy,0.49634188413619995
+Reddit inferred,love,0.025050504133105278
+Reddit inferred,anger,0.2741752862930298
+Reddit inferred,fear,0.07049057632684708
+Reddit inferred,surprise,0.020489778369665146

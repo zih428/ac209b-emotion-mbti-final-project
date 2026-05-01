@@ -2,7 +2,7 @@
 
 ## Status
 
-Not started.
+Implemented locally and summarized for report/video use.
 
 ## Source Boundary
 
@@ -15,9 +15,9 @@ Requirements and deadlines below summarize `requirements.md`, which was transcri
 | `requirements.md` | Markdown summary of the MS4 requirement page. |
 | `tentative_modeling_notebook_design.md` | Tentative MS4 experiment and notebook design; not completed results. |
 | `artifacts/requirements_ms4_final_modeling_deliverables.png` | Screenshot of the MS4 requirement page. |
-| `report/` | Final report assets and drafts. |
+| `report/results/` | Tracked report-ready CSV/PNG result artifacts used by the executed notebook. |
 | `video/` | Video script, recording notes, and video link notes. |
-| `code/` | Main final notebook and supporting code. |
+| `code/` | Executed final notebook, uv environment, training/evaluation scripts, and helper package. |
 
 ## Deadlines
 
@@ -72,26 +72,30 @@ The video should cover, roughly in order:
 - The main notebook may import helper scripts or supporting notebooks.
 - Do not include raw datasets larger than a few hundred MB in a submission zip. Document how to obtain them instead.
 
-## Recommended MS4 Modeling Plan
+## Implemented MS4 Modeling Summary
 
-For the expanded tentative experiment and notebook design, see `tentative_modeling_notebook_design.md`.
+The expanded tentative experiment design is preserved in `tentative_modeling_notebook_design.md`.
+The executed notebook and tracked result artifacts now implement the report-facing MS4 path:
 
-Do not inherit the named person-by-person MS3 task split as a real constraint. That split was tentative and presentation-driven. Reassign work based on availability, implementation needs, and compute constraints.
+- masked Reddit preprocessing through KaggleHub
+- author-level train/validation/test split
+- majority and TF-IDF author baselines
+- fixed text-only GRU with class-weighted BCE, soft author aggregation, and validation-tuned thresholds
+- text-plus-emotion GRU using cached DistilBERT emotion probabilities
+- bootstrap confidence intervals over test authors
+- threshold-objective sensitivity for balanced accuracy versus F1
+- token-length audit plus a real fixed text-only GRU 128 versus 256 max-length sensitivity run
+- report-ready figures, tables, and interpretation in `code/cs1090b_ms4_main_group66.ipynb`
 
-Start from the MS3 baseline diagnosis:
+Headline test mean balanced accuracy:
 
-1. Reuse the author-level split and modeling DataFrame decisions from MS3.
-2. Implement class-weighted BCE on the Stage 2 MBTI head.
-3. Replace hard majority vote with soft author aggregation:
-   - average post-level probabilities by author
-   - tune one threshold per MBTI dimension on validation
-4. Add ROC-AUC where continuous author-level scores exist.
-5. Fine-tune or otherwise improve the Stage 1 emotion model if compute allows.
-6. Cache Stage 1 emotion probabilities before Stage 2 experiments.
-7. Report ablations:
-   - no class weighting
-   - hard vote instead of soft aggregation
-   - RNN emotion model instead of DistilBERT emotion model
+- TF-IDF Logistic: 0.6512
+- GRU Text + Emotion: 0.6223
+- GRU Text: 0.5964
+- GRU Text Inverse Weight: 0.5855
+- Majority: 0.5000
+
+The report should frame the emotion channel as a meaningful improvement over the controlled neural text baseline, while noting that the simpler author-level TF-IDF logistic model remains the strongest overall submitted model.
 
 ## Suggested Success Metrics
 

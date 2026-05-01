@@ -1,0 +1,17 @@
+target,true_label,predicted_label,count
+target_E,0,0,816
+target_E,0,1,413
+target_E,1,0,147
+target_E,1,1,187
+target_S,0,0,815
+target_S,0,1,643
+target_S,1,0,45
+target_S,1,1,60
+target_T,0,0,679
+target_T,0,1,263
+target_T,1,0,208
+target_T,1,1,413
+target_J,0,0,634
+target_J,0,1,308
+target_J,1,0,270
+target_J,1,1,351

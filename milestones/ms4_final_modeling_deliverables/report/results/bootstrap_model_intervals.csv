@@ -1,0 +1,11 @@
+model_id,model_name,metric,point_estimate,ci_lower,ci_upper,n_bootstrap,n_test_authors
+majority_author,Majority,balanced_accuracy,0.5,0.5,0.5,2000,1563
+majority_author,Majority,f1,0.0,0.0,0.0,2000,1563
+linear_tfidf_author,TF-IDF Logistic,balanced_accuracy,0.6511544765499124,0.6340810854240886,0.6672548171829592,2000,1563
+linear_tfidf_author,TF-IDF Logistic,f1,0.4609240594975901,0.44046706555619053,0.4802214998708906,2000,1563
+stage2_text_gru_sqrt,GRU Text,balanced_accuracy,0.596418913743626,0.5801996357369257,0.6141684195092888,2000,1563
+stage2_text_gru_sqrt,GRU Text,f1,0.4225358359889719,0.40424172850036266,0.44066075468937643,2000,1563
+stage2_text_gru_inverse,GRU Text Inverse Weight,balanced_accuracy,0.5854653645971019,0.568921770555627,0.6031867803128907,2000,1563
+stage2_text_gru_inverse,GRU Text Inverse Weight,f1,0.3971963381404857,0.3807555988008639,0.41442772878502926,2000,1563
+stage2_text_emotion_gru,GRU Text + Emotion,balanced_accuracy,0.6222955994715286,0.604807252661997,0.6397684819633455,2000,1563
+stage2_text_emotion_gru,GRU Text + Emotion,f1,0.43355872402885054,0.41616957331369214,0.4507202400525536,2000,1563
