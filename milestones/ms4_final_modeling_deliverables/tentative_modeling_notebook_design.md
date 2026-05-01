@@ -17,7 +17,19 @@ This design directly follows the MS3 diagnosis:
 - `F/T` showed high precision but near-zero recall, indicating weak minority signal existed but was discarded.
 - Adding six emotion probabilities alone did not help under vanilla BCE and hard majority vote.
 
-Therefore, MS4 should first fix the training and aggregation conditions that caused collapse, then test whether emotion features add value over a corrected text-only model. The key final comparison is not "new model versus old broken baseline"; it is "fixed text-only versus fixed text-plus-emotion under the same preprocessing, split, loss family, aggregation, and threshold-tuning protocol."
+Therefore, MS4 should first fix the training and aggregation conditions that caused collapse, then test whether emotion features add value over corrected text-only models. However, MS4 should not remain a GRU-centered project. The final notebook should treat the existing GRU and TF-IDF work as the corrected baseline layer, then introduce transformer-based author representations as the main new modeling contribution.
+
+The key final comparison is not "new model versus old broken baseline." It is:
+
+> text-only versus text-plus-emotion under the same preprocessing, split, aggregation, and threshold-tuning protocol, repeated across increasingly strong text representations.
+
+This creates three scientific layers:
+
+1. **Corrected legacy layer:** fixed GRU text versus fixed GRU plus emotion.
+2. **Frozen transformer representation layer:** transformer text embeddings versus transformer text embeddings plus emotion aggregates.
+3. **Set/attention author transformer layer:** learned author-level aggregation of unordered post embeddings, again tested with and without emotion.
+
+The optional full fine-tuned Stage 2 transformer should be treated as a supervised transformer ceiling, not the center of the project.
 
 ## Hardware and Runtime Assumption
 
@@ -93,41 +105,51 @@ All headline MS4 models should use the same masked corpus, same author split, sa
 
 ## Primary Research Question
 
-Do emotion-informed features improve author-level prediction of the four binary MBTI dimensions over text-only baselines after correcting for class imbalance and aggregation loss?
+Do emotion-informed features improve author-level prediction of the four binary MBTI dimensions over text-only baselines after correcting for class imbalance, aggregation loss, and author-level evaluation constraints?
 
 The phrase "after correcting" matters. MS3 already showed that naive emotion concatenation does not help under a collapsed training setup. MS4 should not repeat that same test and call it final.
 
-Operationally, the causal comparison should be:
+The updated MS4 question should be operationalized across model families:
 
-> corrected text-only GRU versus corrected GRU plus emotion probabilities.
+> Does explicit emotion add incremental author-level signal beyond text-only representations in corrected GRU, frozen-transformer, and set/attention-transformer settings?
 
-This requires a fixed text-only baseline under the same weighted-loss, soft-aggregation, and threshold-tuning protocol as the emotion-informed models.
+This preserves the original emotion-informed MBTI question while making transformer modeling the main new contribution.
 
 ## Scope for MS4
 
-The plan should be executable by the May 12, 2026 MS4 deadline. The core scope is deliberately narrower than the full list of possible model upgrades.
+The plan should be executable by the May 12, 2026 MS4 deadline while making the final project substantively transformer-centered. Treat the currently completed GRU/TF-IDF work as a baseline layer with experiment weight about `10`, then add transformer work with experiment weight about `15`.
 
-Core MS4 work:
+Baseline layer to retain:
 
-- Build one masked, author-split modeling corpus with conservative MBTI leakage masking and split-balance diagnostics.
-- Train or load the fixed text-only GRU baseline.
-- Train or load the fixed RNN-emotion GRU model.
-- Train or load the fixed DistilBERT-emotion GRU model.
-- Include a cheap author-level TF-IDF plus logistic regression or linear SVM sanity baseline.
-- Report author-level controlled comparisons with cached predictions, threshold tuning, and imbalance-aware metrics.
+- Masked, author-split modeling corpus with leakage, conflict, split-balance, and truncation audits.
+- Majority baseline.
+- Author-level TF-IDF plus logistic regression baseline.
+- Fixed text-only GRU.
+- Fixed GRU plus emotion features.
+- GRU weighting and length sensitivity diagnostics.
+- Threshold tuning, bootstrap intervals, cached notebook outputs, and final metric pipeline.
 
-Optional if time permits:
+New transformer-centered core:
 
-- Paired bootstrap confidence intervals over test authors.
-- One or two targeted ablations that isolate the largest observed effect.
-- Additional threshold-sensitivity plots if balanced-accuracy and F1 thresholds differ materially.
+- Frozen post-level transformer embedding cache for the masked Reddit modeling corpus.
+- Author-level transformer feature table built from post embeddings.
+- Frozen transformer author classifiers with and without emotion aggregates.
+- Emotion-only author baseline using aggregate emotion probabilities.
+- Set/attention author transformer over each author's unordered post embeddings, again with and without emotion.
+- Activity/length-control variants for the key author-level emotion comparisons.
+- Unified emotion-increment analysis across GRU, frozen-transformer, and set/attention-transformer families.
 
-Future work, not core MS4:
+Stretch scope:
 
-- Stage 2 DistilBERT MBTI text encoder.
-- Learned author-level aggregators.
-- Reddit-side emotion calibration.
-- Larger post caps or transformer-heavy ablation grids.
+- One supervised post-level MiniLM or DistilBERT MBTI fine-tuning run as a transformer ceiling.
+- A matching emotion-head version of that run only if compute and time remain.
+
+Out of scope for the core:
+
+- Multiple full fine-tuned transformer ablations.
+- DeBERTa-base or other heavier encoders on the full Reddit corpus.
+- Uncapped 13M-post transformer training or inference.
+- Large multi-seed transformer grids.
 
 ## Model Families to Compare
 
@@ -153,79 +175,189 @@ Suggested representation:
 Purpose:
 
 - Provides a cheap but strong non-neural baseline.
-- Checks whether the GRU family is adding value beyond a simple lexical model.
+- Checks whether neural models add value beyond a simple lexical model.
 - Gives the report an interpretable sanity check that can often be trained quickly even when neural experiments are slow.
 
-### 3. MS3 Baseline 1: Text-Only GRU
+### 3. Corrected GRU Text Baseline
 
-Reuse or reproduce the MS3 text-only GRU with hard majority-vote author aggregation, clearly labeled as a historical baseline.
+Train the Stage 2 GRU text pathway on the MS4 masked corpus using the corrected MS4 protocol:
 
-Purpose:
-
-- Historical baseline, not a row in the main MS4 controlled comparison if it is not rerun on the masked MS4 corpus.
-- Shows what direct text modeling did before the MS4 fixes.
-
-### 4. MS3 Baseline 2: GRU Plus RNN Emotion Probabilities
-
-Reuse or reproduce the MS3 GRU plus six-dimensional RNN emotion probabilities, again with hard majority-vote aggregation and clearly labeled as a historical baseline.
+- Author-balanced post loss or author-balanced sampling.
+- Class-weighted `BCEWithLogitsLoss(pos_weight=...)`.
+- Soft author-level aggregation by mean post probability.
+- One validation-tuned threshold per MBTI dimension.
 
 Purpose:
 
-- Historical emotion baseline, not a row in the main MS4 controlled comparison if it is not rerun on the masked MS4 corpus.
-- Shows that emotion concatenation alone was insufficient.
+- Preserves continuity with MS3.
+- Shows how much of the MS3 failure was fixed by better training and aggregation.
+- Serves as the corrected legacy text-only control.
 
-### 5. Fixed Text-Only Baseline: GRU Plus Weighted BCE and Soft Aggregation
+### 4. Corrected GRU Text Plus Emotion
 
-Train the same Stage 2 GRU text pathway on the MS4 masked corpus, but apply the MS4 training and aggregation fixes:
+Use the same corrected GRU setup but concatenate six emotion probabilities to the text representation.
 
-- Stage 2 loss: class-weighted `BCEWithLogitsLoss(pos_weight=...)`.
-- Author aggregation: mean post-level probabilities per author.
-- Decision rule: one validation-tuned threshold per MBTI dimension.
+Emotion options:
 
-Purpose:
-
-- This is the most important control model.
-- It answers how much improvement comes from fixing class imbalance and aggregation before adding emotion features.
-- Without this row, MS4 cannot cleanly claim that emotion probabilities add incremental value.
-
-### 6. Fixed RNN-Emotion Model: RNN Emotion Plus Weighted BCE and Soft Aggregation
-
-Keep the MS3 RNN emotion probabilities and Stage 2 GRU architecture, but change:
-
-- Stage 2 loss: class-weighted `BCEWithLogitsLoss(pos_weight=...)`.
-- Author aggregation: mean post-level probabilities per author.
-- Decision rule: one validation-tuned threshold per MBTI dimension.
+- Use the already cached DistilBERT emotion probabilities as the primary emotion channel.
+- Keep any RNN-emotion version as a historical bridge or secondary diagnostic if available.
 
 Purpose:
 
-- Compare against the fixed text-only baseline to estimate the incremental value of the original RNN emotion channel under corrected training conditions.
-- Isolate whether MS3's negative emotion result was mainly caused by the loss/aggregation setup rather than by the RNN emotion encoder itself.
+- Tests whether emotion adds value within the corrected GRU family.
+- Keeps Stage 2 architecture fixed so the GRU text-versus-emotion comparison remains clean.
 
-### 7. Final Model: DistilBERT Emotion Plus Fixed Stage 2
+### 5. Frozen Transformer Text Embedding Baseline
 
-Use a fine-tuned DistilBERT emotion classifier for Stage 1, then feed six soft emotion probabilities into the same Stage 2 GRU setup used above:
+Generate post-level text embeddings using a pretrained sentence or compact transformer encoder, then aggregate embeddings to author-level features.
 
-- Stage 1: DistilBERT emotion classifier trained on `AdamCodd/emotion-balanced`.
-- Stage 2: GRU text encoder plus six emotion probabilities.
-- Loss: class-weighted BCE.
-- Aggregation: soft author-level mean probability.
-- Thresholds: tuned on validation only.
+Recommended starting point:
+
+- `sentence-transformers/all-MiniLM-L6-v2`, because it maps sentences and short paragraphs to 384-dimensional vectors and is designed for embedding-style use.
+
+Author features:
+
+- Mean post embedding.
+- Standard deviation of post embeddings.
+- Optional post-count and length controls.
+
+Classifier:
+
+- Logistic regression, linear probe, or a small MLP trained at the author level.
 
 Purpose:
 
-- Tests whether stronger emotion probabilities add value over both the fixed text-only baseline and the fixed RNN-emotion model.
-- Keeps the Stage 2 text pathway fixed so improvements are not conflated with a stronger text encoder.
-- Treat Stage 1 emotion test accuracy as a quality-control diagnostic, not as evidence that downstream MBTI prediction improved. Downstream author-level comparison against the fixed text-only baseline is the deciding evidence.
+- Introduces a modern transformer text representation without repeatedly fine-tuning a large transformer over 1.65M posts.
+- Aligns training with author-level labels.
+- Directly challenges the strong TF-IDF baseline.
 
-### 8. Future Work: Stage 2 DistilBERT Text Encoder
+### 6. Emotion-Only Author Baseline
 
-Treat a transformer Stage 2 MBTI text encoder as future work, not a core MS4 experiment.
+Train an author-level classifier using only aggregate emotion features.
 
-Reason:
+Suggested features:
 
-- It may improve performance, but it changes the text encoder and confounds the question "does emotion help?"
-- It is more compute-intensive on the 1.6M-post modeling corpus.
-- It is likely to distract from the controlled MS4 comparison given the deadline.
+- Mean and standard deviation of the six post-level emotion probabilities.
+- Optional max or quantile summaries if the same feature set is used consistently across train/validation/test.
+
+Purpose:
+
+- Tests whether transferred emotion probabilities contain standalone author-level signal.
+- Helps interpret later text-plus-emotion gains.
+- If emotion-only is weak but text-plus-emotion improves over text-only, emotion is complementary rather than sufficient.
+- If emotion-only is strong, the report should treat emotion features as a substantial proxy representation of the underlying text, not merely a small auxiliary signal.
+
+### 7. Frozen Transformer Text Plus Emotion
+
+Use the same author-level transformer text features and add emotion aggregates.
+
+Emotion features:
+
+- Mean and standard deviation of six post-level emotion probabilities.
+- Optional emotion-distribution summaries such as max or quantiles if useful and kept consistent across train/validation/test.
+
+Purpose:
+
+- Cleanly tests whether explicit emotion adds value beyond a modern transformer text representation.
+- This comparison is more important than comparing the final emotion model only against GRU.
+
+### 8. Frozen Transformer Text Plus Emotion Plus Controls
+
+Add simple author-level activity and length controls to the frozen transformer text-plus-emotion model.
+
+Suggested controls:
+
+- Retained post count.
+- Mean or median post length.
+- Share of posts above the model's token limit.
+- Optional total retained token count.
+
+Purpose:
+
+- Checks whether any emotion gain is actually a proxy for verbosity, retained-post count, or truncation exposure.
+- Provides a low-cost robustness check for the most important author-level transformer emotion comparison.
+
+### 9. Set/Attention Author Transformer Text
+
+Represent each author as an unordered set of retained post embeddings:
+
+```text
+author = {post_embedding_1, post_embedding_2, ..., post_embedding_k}
+```
+
+Train a small attention-based author aggregator over the post-embedding set, with one output head for the four MBTI dimensions.
+
+Important design constraint:
+
+- Reddit post order is not available in the current dataset, so the model should not rely on arbitrary positional encoding as if posts formed a temporal sequence.
+- If a transformer encoder is used, it should be described as a permutation-aware or order-agnostic set/attention aggregator. Any positional feature should be omitted or justified as a non-temporal sampling/index artifact, not as chronology.
+
+Purpose:
+
+- Models within-author post structure rather than reducing each author to a simple mean vector.
+- Trains directly at the author level, matching the label and evaluation unit.
+- Provides the strongest architecture-level transformer contribution without raw-text transformer fine-tuning over every post.
+
+### 10. Set/Attention Author Transformer Text Plus Emotion
+
+Use the same set/attention author transformer, but append the six emotion probabilities to each post embedding before author-level aggregation.
+
+Purpose:
+
+- Tests whether emotion helps when the model can learn how to weight and combine an author's posts.
+- Provides the cleanest transformer-based emotion-increment comparison:
+
+```text
+Set/Attention Transformer Text + Emotion
+minus
+Set/Attention Transformer Text
+```
+
+### 11. Set/Attention Author Transformer Text Plus Emotion Plus Controls
+
+Add author-level activity and length controls to the set/attention transformer text-plus-emotion model.
+
+Purpose:
+
+- Mirrors the frozen-transformer robustness check.
+- Helps distinguish genuine emotion complementarity from activity or length effects.
+
+### 12. Mean-Pooling Ablation for the Set/Attention Transformer
+
+Compare the set/attention transformer against a simpler mean-pooling or mean-plus-std MLP model using the same post embeddings.
+
+Purpose:
+
+- Determines whether learned author-level aggregation helps beyond fixed pooling.
+- Prevents overclaiming if the set/attention transformer is no better than simple pooled embeddings.
+
+### 13. Post-Budget Sensitivity for Author Transformers
+
+Compare at least two retained-post budgets for transformer author models if time permits, for example 50 versus 200 posts per author.
+
+Purpose:
+
+- Tests whether the author transformer needs many posts or whether a smaller sampled budget preserves most of the signal.
+- Helps manage compute and supports a practical final recommendation.
+
+### 14. Supervised Post-Level Transformer Ceiling
+
+Optionally fine-tune one compact transformer, such as MiniLM or DistilBERT, to predict post-level MBTI logits, then aggregate post-level probabilities to authors.
+
+Recommended use:
+
+- Run one text-only supervised transformer if the frozen and set/attention transformer branches finish.
+- Add a text-plus-emotion classifier-head variant only if time remains.
+
+Purpose:
+
+- Provides a supervised transformer ceiling.
+- Tests whether direct post-level MBTI supervision improves over frozen embedding author models.
+
+Risk:
+
+- It is compute-heavy and reintroduces the post-label noise problem because each post inherits an author-level MBTI label.
+- It should not be allowed to crowd out the cleaner frozen and set/attention author-level transformer experiments.
 
 ## Why This Is Scientifically Defensible
 
@@ -235,7 +367,7 @@ First, it keeps the evaluation unit aligned with the prediction claim. MBTI labe
 
 Second, it addresses class imbalance using metrics and loss functions appropriate to the problem. Raw accuracy is not meaningful when `N/S` is roughly 93/7 at the author level. Balanced accuracy, ROC-AUC, F1, precision, and recall are more informative. Class-weighted BCE directly targets the majority-class collapse observed in MS3.
 
-Third, it separates model-capacity changes from training-procedure changes. Before concluding that emotion features help or fail, MS4 tests whether the collapsed Stage 2 head can be repaired using weighted loss and soft aggregation in a text-only model. Only then does it add the RNN emotion channel and swap in a stronger emotion encoder.
+Third, it separates training-procedure fixes from representation-strength changes. The corrected GRU branch tests whether MS3's collapsed Stage 2 head can be repaired using weighted loss, author-balanced training, and soft aggregation. The transformer branches then ask a different question: once text is represented by a modern pretrained encoder, do explicit emotion features still add incremental value?
 
 Fourth, it tunes thresholds only on validation data. Test data should be used once for final reporting. This prevents accidental test-set optimization. The threshold objective should be fixed before looking at test results, with balanced accuracy as the default primary objective and F1 reported alongside it.
 
@@ -259,10 +391,18 @@ Predeclare the recipe-selection protocol before opening test results:
 
 If per-post loss weights are used, class weights should be computed from the same effective training distribution used by the loss, not from an incompatible full-dataset or unweighted post count. If author-balanced sampling is used instead, document the sampling rule and compute class weights from the corresponding training-author distribution.
 
-Seventh, it supports either positive or negative final outcomes:
+Seventh, it makes transformer modeling scientifically meaningful rather than decorative. The frozen transformer branch tests modern text representation without noisy post-level MBTI fine-tuning. The set/attention author transformer branch then tests whether learned author-level post aggregation improves over fixed mean or mean-plus-std pooling. Both branches use author-level labels at the author level.
 
-- If fixed emotion models outperform the fixed text-only baseline, the conclusion can be that emotion features add incremental author-level signal once imbalance and aggregation are handled.
-- If fixed emotion models do not outperform the fixed text-only baseline, the conclusion can still be strong: targeted fixes recovered some minority signal, but transferred emotion probabilities add limited incremental value beyond text under controlled author-level evaluation.
+Eighth, it respects the data's lack of post order. The Reddit dataset used here does not provide a reliable chronological sequence of posts per author. Therefore, learned author aggregation should be framed as set or multiple-instance learning over retained posts, not as temporal sequence modeling. This is why mean-pooling baselines and order-agnostic attention are important controls.
+
+Ninth, it includes controls that make the emotion claim harder to attack. The emotion-only baseline tests whether emotion probabilities carry standalone author-level signal. Activity and length controls test whether apparent emotion gains are merely proxies for retained post count, verbosity, or truncation exposure.
+
+Tenth, it supports multiple honest final outcomes:
+
+- If emotion improves GRU but not transformer models, the conclusion can be that emotion helps weak sequence models but becomes redundant once semantic text representations are strong.
+- If emotion improves both GRU and transformer models, the conclusion can be that emotion carries robust incremental author-level signal.
+- If transformer text models beat GRU and TF-IDF but emotion adds little, the conclusion can emphasize representation strength and source-target limits of transferred emotion.
+- If TF-IDF remains competitive or strongest, the conclusion can honestly discuss MBTI prediction as a lexical self-expression task where sparse author-level language markers are powerful.
 
 ## Metrics
 
@@ -292,16 +432,25 @@ For thresholded predictions:
 
 For uncertainty:
 
-- If time permits, report paired bootstrap confidence intervals over test authors for the final model versus the fixed text-only baseline.
-- Bootstrap differences are more useful than standalone intervals because the headline question is whether emotion improves over the corrected text-only control.
+- Report paired bootstrap confidence intervals over test authors for emotion-minus-text deltas within each model family when time permits.
+- Bootstrap differences are more useful than standalone intervals because the headline question is whether emotion improves over the matched text-only control.
 
 For result tables:
 
 - Keep historical MS3 diagnosis separate from the MS4 controlled comparison.
 - Historical table: majority baseline, MS3 B1, and MS3 B2, clearly labeled as unmasked historical references if they are not rerun on the MS4 masked corpus.
-- Main MS4 table: linear author-level sanity baseline, fixed text-only GRU, fixed RNN-emotion GRU, and fixed DistilBERT-emotion GRU.
+- Main MS4 table: TF-IDF, corrected GRU text, corrected GRU plus emotion, emotion-only, frozen transformer text, frozen transformer plus emotion, set/attention transformer text, and set/attention transformer plus emotion.
+- Optional ceiling table: supervised post-level transformer text and supervised post-level transformer plus emotion, if run.
 - The main table should be compact: per dimension, report balanced accuracy, F1, minority recall, PR-AUC or average precision, and ROC-AUC.
 - Avoid ranking models primarily by raw accuracy.
+
+Recommended appendix or robustness placement:
+
+- GRU inverse-weight sensitivity belongs in a robustness or appendix section unless it becomes the selected recipe.
+- GRU max-length 256 sensitivity belongs in robustness, not the main model table.
+- Threshold-objective sensitivity belongs in robustness unless it materially changes the final conclusion.
+- Detailed truncation tables and smoke-test outputs should stay out of the main paper body.
+- TF-IDF should remain in the main body because it is a strong classical baseline, not a minor diagnostic.
 
 ## Recommended Notebook Structure
 
@@ -320,7 +469,8 @@ The main notebook should be readable as a complete final-project artifact. Helpe
 
 3. **Project Framing**
    - One concise paragraph explaining the MS3 failure diagnosis.
-   - One diagram of the Stage 1 -> Stage 2 -> author aggregation pipeline.
+   - One concise paragraph explaining why MS4 adds transformer author representations.
+   - One diagram showing the three branches: corrected GRU, frozen transformer author features, and set/attention author transformer.
 
 4. **Data Access**
    - Load Reddit through KaggleHub.
@@ -345,48 +495,85 @@ The main notebook should be readable as a complete final-project artifact. Helpe
      - author-label consistency audit if conflicts are found
      - Stage 2 token truncation audit for max length 128
 
-7. **Stage 1 Emotion Classifier**
-   - Fine-tune DistilBERT on the emotion dataset.
-   - Report validation/test accuracy and macro-F1.
-   - State explicitly that emotion-source accuracy is diagnostic only; downstream MBTI comparison is the final evidence.
-   - Show confusion matrix.
-   - Generate and cache Reddit emotion probabilities.
-   - Compare Reddit mean emotion distribution to source emotion labels.
+7. **Existing Baseline Layer**
+   - Present majority, TF-IDF, corrected GRU text, and corrected GRU plus emotion.
+   - Keep this section compact.
+   - Explain that GRU emotion improves over corrected GRU text, but TF-IDF remains a strong lexical baseline if that is observed.
+   - Use this section to motivate transformer representations rather than to make GRU the project centerpiece.
 
-8. **Stage 2 MBTI Models**
-   - Define the model comparison table.
-   - Train or load the author-level TF-IDF plus logistic regression or linear SVM sanity baseline.
-   - Train or load MS3 historical B1/B2 references, fixed text-only baseline, fixed RNN-emotion model, and final DistilBERT-emotion model.
-   - Compare inverse-frequency versus square-root class weights on validation only, then lock one recipe before test evaluation.
-   - Compute class weights from the training split's effective author-level distribution, not from the full dataset.
-   - Use author-balanced sampling or per-post loss weights to reduce prolific-author dominance during post-level training, and keep that choice fixed across fixed GRU models.
-   - Plot loss curves.
-   - Show validation threshold tuning curves.
-   - If the truncation audit is severe and time permits, run a fixed text-only GRU validation sensitivity check for max length 128 versus 256 before locking the core max length.
+8. **Stage 1 Emotion Features**
+   - Load or generate DistilBERT emotion probabilities for Reddit posts.
+   - Report the source emotion model only as feature provenance and quality control.
+   - Compare source emotion distribution to Reddit inferred emotion distribution.
+   - State explicitly that downstream author-level MBTI results are the evidence for or against emotion usefulness.
 
-9. **Main Results**
-   - Historical diagnosis table for MS3 B1/B2 and the majority-class floor.
-   - Main controlled author-level metric table for the MS4 masked-corpus models.
-   - One model-comparison plot by MBTI dimension.
-   - Confusion matrices for the final model.
-   - ROC or precision-recall curves, especially for imbalanced dimensions.
+9. **Transformer Embedding Pipeline**
+   - Introduce the selected frozen transformer encoder.
+   - Cache post-level embeddings for the masked Reddit modeling corpus.
+   - Build author-level embedding features using mean and dispersion summaries.
+   - Document cache metadata, model id, embedding dimension, and runtime at a high level.
 
-10. **Ablations**
-    - Treat these as candidate ablations; run the highest-value one or two if the core models finish first.
-    - Remove class weighting.
-    - Use hard vote instead of soft aggregation.
-    - Use RNN emotion probabilities instead of DistilBERT emotion probabilities.
-    - No emotion features under the fixed protocol.
+10. **Frozen Transformer Author Models**
+    - Train or load transformer text-only author classifiers.
+    - Train or load emotion-only author classifiers.
+    - Train or load transformer text-plus-emotion author classifiers.
+    - Train or load transformer text-plus-emotion-plus-controls variants if included.
+    - Compare against TF-IDF and corrected GRU models using the same author-level metric pipeline.
+    - Treat this as the first major transformer result block.
 
-11. **Interpretation**
-    - Explain which change moved the model off the majority-class floor.
-    - Discuss whether emotion adds incremental signal over the fixed text-only baseline.
-    - Report limitations: self-reported labels, domain shift, missing subreddit/time metadata, MBTI construct limitations.
+11. **Set/Attention Author Transformer**
+    - Present the author-as-unordered-set-of-post-embeddings design.
+    - Explain why arbitrary temporal sequence assumptions are not justified without timestamps.
+    - Train or load set/attention transformer text-only and text-plus-emotion models.
+    - Train or load text-plus-emotion-plus-controls variants if included.
+    - Include the mean-pooling or mean-plus-std ablation using the same embeddings.
+    - Include post-budget sensitivity if run.
+    - Treat this as the second major transformer result block.
 
-12. **Reproducibility and References**
+12. **Optional Supervised Transformer Ceiling**
+    - Include only if run successfully.
+    - Present one compact supervised MiniLM or DistilBERT post-level model.
+    - Compare author-level aggregated performance against frozen and set/attention transformer models.
+    - Keep this section clearly marked as a ceiling or stretch analysis.
+
+13. **Unified Results**
+    - One headline model-family table:
+      - classical baseline
+      - corrected GRU
+      - frozen transformer
+      - set/attention transformer
+      - optional supervised transformer
+    - One per-dimension metric table.
+    - One model-comparison plot by MBTI dimension.
+    - Precision-recall or average-precision view for skewed dimensions such as `N/S`.
+    - Confusion matrices for the selected final model.
+
+14. **Emotion Increment Analysis**
+    - Report matched deltas:
+      - GRU plus emotion minus GRU text
+      - frozen transformer plus emotion minus frozen transformer text
+      - set/attention transformer plus emotion minus set/attention transformer text
+      - optional supervised transformer plus emotion minus supervised transformer text
+    - Include emotion-only performance to contextualize whether emotion is standalone signal, complementary signal, or mostly redundant.
+    - Use paired bootstrap intervals where available.
+    - This section should answer the main research question.
+
+15. **Compute and Robustness**
+    - Summarize local MPS runtime, cache size, and resumability.
+    - Report threshold-objective sensitivity if relevant.
+    - Report token-length or post-budget sensitivity if run.
+    - Explain why the plan avoids a large full fine-tuned transformer grid.
+
+16. **Interpretation**
+    - Explain whether emotion adds incremental signal, and under which representation family.
+    - Discuss whether transformer semantic features make explicit emotion redundant or complementary.
+    - Address TF-IDF if it remains competitive or strongest.
+    - Report limitations: self-reported labels, MBTI construct limitations, source-target emotion shift, missing subreddit/time metadata, and post-level label noise.
+
+17. **Reproducibility and References**
     - List data sources.
-    - List core libraries.
-    - Cite PyTorch MPS, Hugging Face Transformers/Datasets, KaggleHub, and relevant papers.
+    - List core libraries and model cards.
+    - Cite PyTorch MPS, Hugging Face Transformers/Datasets, KaggleHub, sentence-transformer or MiniLM model cards, and relevant papers.
 
 ## Suggested Helper Modules
 
@@ -396,7 +583,9 @@ Place implementation helpers under the MS4 code area, for example `code/src/`:
 - `data.py`: KaggleHub/Hugging Face loading, filtering, split creation.
 - `preprocessing.py`: text cleaning, MBTI term masking, label derivation, author-label consistency checks.
 - `emotion.py`: Stage 1 training, inference, and probability caching.
-- `models.py`: Stage 2 GRU architecture and model builders.
+- `embeddings.py`: frozen transformer embedding inference and author-level embedding aggregation.
+- `models.py`: GRU, author-level MLP, and set/attention transformer model builders.
+- `transformer_author.py`: set/attention author transformer training and prediction helpers.
 - `training.py`: MPS device checks, training loops, early stopping.
 - `evaluation.py`: author aggregation, threshold tuning, metric calculation, bootstrap intervals.
 - `cache.py`: cache naming, metadata, and loading checks for model outputs and intermediate tables.
@@ -415,8 +604,8 @@ The submitted notebook should support two paths:
 - Use a visible runtime flag such as `RUN_FULL_TRAINING = False` for the submitted notebook and document how to enable full retraining.
 - Include a small `SMOKE_TEST = True` path or equivalent that validates data loading, preprocessing, model construction, aggregation, and metric code on a tiny subset.
 - Training and long inference steps should be resumable after interruption.
-- Expensive intermediate outputs, especially Reddit emotion probabilities and Stage 2 post-level logits, should be cached and reused.
-- Cache files should include enough metadata to prevent accidental reuse across incompatible preprocessing or model versions, including at minimum split id, masking status, emotion model id, and label encoding.
+- Expensive intermediate outputs, especially Reddit emotion probabilities, transformer post embeddings, author-level embedding tables, and post-level logits, should be cached and reused.
+- Cache files should include enough metadata to prevent accidental reuse across incompatible preprocessing or model versions, including at minimum split id, masking status, embedding model id, emotion model id, and label encoding.
 - The notebook should show live progress for long steps, such as training epochs, validation passes, Reddit inference shards, and ablation runs.
 - Progress reporting should make it clear which experiment is running, how far it has progressed, and where outputs are being written.
 
@@ -445,59 +634,80 @@ Recommended figures:
 3. Train/validation/test split balance heatmap.
 4. MBTI leakage audit bar chart before masking.
 5. Author-label consistency audit summary, if any conflicts are found.
-6. Stage 2 token truncation audit summary for max length 128.
-7. Linear TF-IDF baseline comparison against the fixed GRU models.
-8. Stage 1 emotion confusion matrix.
-9. Source-vs-Reddit emotion distribution comparison.
-10. Stage 2 loss curves.
-11. Validation threshold tuning curves by dimension.
-12. Main model comparison plot by metric and dimension, with fixed text-only as the key control.
-13. Final model confusion matrices.
-14. Ablation plot showing the effect of each targeted fix, if time permits.
+6. Token truncation or embedding-input length audit.
+7. Baseline layer comparison: TF-IDF, corrected GRU text, corrected GRU plus emotion.
+8. Source-vs-Reddit emotion distribution comparison.
+9. Transformer embedding pipeline summary, including cache size and author-feature construction.
+10. Emotion-only baseline summary.
+11. Frozen transformer author-model comparison, text versus text plus emotion, with controls if included.
+12. Set/attention author transformer architecture diagram emphasizing unordered post aggregation.
+13. Set/attention transformer results, text versus text plus emotion, with controls if included.
+14. Emotion-increment plot across model families.
+15. Unified model comparison plot by metric and dimension.
+16. Bootstrap confidence intervals for matched emotion-minus-text deltas, if available.
+17. Final model confusion matrices.
+18. Post-budget or pooling ablation plot for set/attention transformer, if run.
 
 Avoid text-heavy figures. Captions should explain the modeling decision supported by each visualization.
 
 ## Compute Plan
 
-Local MPS should be sufficient for the core plan:
+Local MPS should be sufficient for the expanded transformer-centered plan if full fine-tuned transformer grids are avoided.
 
-- DistilBERT Stage 1 on about 20,000 emotion rows.
-- Batched emotion inference over the filtered Reddit modeling corpus.
-- GRU Stage 2 training on the capped author-level dataset.
+Core local work:
+
+- Cached DistilBERT emotion inference over the filtered Reddit modeling corpus.
+- Corrected GRU text and text-plus-emotion runs.
+- Frozen transformer post-embedding inference over the filtered Reddit modeling corpus.
+- Author-level frozen-transformer classifiers.
+- Emotion-only and control-feature author baselines.
+- Small set/attention author transformers over cached post embeddings.
 
 Recommended local settings:
 
 - Stage 1 DistilBERT max length: 64.
 - Stage 1 batch size: start with 32 or 64 and adjust for MPS memory.
-- Stage 1 epochs: 3-5 with early stopping.
+- Stage 1 emotion fine-tuning, if performed locally, should be limited to 3-5 epochs with early stopping.
 - Stage 2 GRU max length: 128 for the core comparison, with a reported truncation audit and an optional fixed text-only 128 versus 256 validation sensitivity check if truncation is severe.
 - Stage 2 batch size: start with 512 or 1024 and adjust for memory.
 - Cache Stage 1 Reddit emotion probabilities immediately after inference.
+- Frozen transformer embeddings should be cached once and reused for all author-level transformer models.
+- Use a compact encoder such as `sentence-transformers/all-MiniLM-L6-v2` or MiniLM before considering larger encoders.
+- Store embedding caches in a compact numeric format with row ids, authors, split ids, model id, and preprocessing fingerprint.
+- Set/attention transformer training should operate on cached post embeddings and author-level batches, not raw text.
+- Do not treat post order as temporal unless reliable timestamps are introduced, which the current dataset does not provide.
 
 Rent GPU only if:
 
-- The team wants multiple transformer ablations.
-- Local MPS inference over the full capped Reddit corpus is too slow for the MS4 timeline.
+- The team decides to run multiple full supervised post-level transformer fine-tunes.
+- Local MPS embedding inference over the full capped Reddit corpus is too slow for the MS4 timeline.
+- A heavier transformer such as DeBERTa is moved from future work into the actual experiment plan.
 
-The core MS4 plan should not require rented GPU compute if implemented efficiently. Stage 2 DistilBERT should remain future work rather than a reason to rent GPU for the core submission.
+The core MS4 plan should not require rented GPU compute if implemented efficiently. One supervised MiniLM or DistilBERT ceiling run may fit locally, but it should not become a prerequisite for a strong MS4 submission.
 
 ## Risks and Mitigations
 
 | Risk | Mitigation |
 |---|---|
 | MPS unavailable in notebook | Allow cached evaluation and smoke tests on CPU; require MPS only when `RUN_FULL_TRAINING = True`. |
-| Plan becomes too large for the deadline | Keep Stage 2 DistilBERT, learned aggregators, Reddit-side calibration, and large ablation grids as future work. |
+| Plan becomes too large for the deadline | Prioritize frozen transformer author models first, set/attention author transformers second, and supervised post-level transformer fine-tuning last. |
 | Stage 2 max length 128 truncates too much Reddit text | Report post-level and author-level truncation rates; if severe, run a fixed text-only 128 versus 256 validation sensitivity check before locking the core max length. |
 | Weighted BCE over-corrects `N/S` | Compare strict inverse-frequency weights with milder square-root weights on validation only, select by mean balanced accuracy with documented tie-breakers, and keep one locked recipe for test. |
 | Imbalance corrections become inconsistent | Define one training recipe: class weights from the effective training distribution, fixed author-balancing or loss-weighting, and validation-only threshold tuning. |
 | Apparent final-model gain comes only from weighted BCE or soft aggregation | Include the fixed text-only baseline and compare emotion models against it under the same protocol. |
 | Post-level training overweights prolific authors | Use author-balanced sampling or per-post loss weights based on each author's retained post count. |
+| Transformer text features make emotion look unnecessary | Treat this as a valid finding: explicit emotion may be redundant once semantic text representations are strong. |
+| Frozen transformer embeddings underperform TF-IDF | Report honestly; TF-IDF may capture sparse lexical self-expression better than generic semantic embeddings for MBTI labels. |
+| Set/attention transformer overfits only 10k authors | Compare against mean-pooling baselines, use validation monitoring, and keep model size small. |
+| Arbitrary post order contaminates author transformer results | Use order-agnostic pooling or attention; do not use temporal positional encodings without timestamps. |
+| Emotion gains are actually activity or length effects | Include activity/length controls in the key author-level emotion comparisons. |
+| Full supervised transformer becomes a compute sink | Keep it as a one-run ceiling or omit it if frozen and set/attention transformer results already answer the research question. |
 | Thresholds look arbitrary | Predeclare validation balanced accuracy as the primary threshold objective, report thresholds, and apply them unchanged to test. |
 | DistilBERT emotion model improves source test accuracy but not Reddit downstream performance | Treat as evidence of source-target domain shift; report honestly. |
 | Neural models underperform a simple lexical baseline | Include the author-level TF-IDF linear baseline and report the result honestly. |
-| Cached predictions become stale after preprocessing changes | Store cache metadata for masking status, split id, model id, and label encoding; invalidate mismatches. |
+| Cached predictions become stale after preprocessing changes | Store cache metadata for masking status, split id, model id, embedding model id, emotion model id, and label encoding; invalidate mismatches. |
 | Notebook becomes too long | Move helpers into `.py` modules and keep only orchestration, prose, and outputs in the notebook. |
-| Final result is negative | Frame as a controlled negative result: fixes addressed MS3 collapse, but emotion transfer had limited incremental value. |
+| Final result is negative | Frame as a controlled result: transformer text representations may capture the available signal while transferred emotion contributes limited incremental value. |
 
 ## References to Cite in MS4
 
@@ -511,4 +721,7 @@ The core MS4 plan should not require rented GPU compute if implemented efficient
 - scikit-learn ROC-AUC: <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html>
 - scikit-learn TF-IDF vectorizer: <https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html>
 - scikit-learn logistic regression: <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html>
+- Sentence-transformers `all-MiniLM-L6-v2` model card: <https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2>
+- Microsoft MiniLM model card: <https://huggingface.co/microsoft/MiniLM-L12-H384-uncased>
+- Hugging Face Apple Silicon / MPS training note: <https://huggingface.co/docs/transformers/perf_train_special>
 - DistilBERT paper: <https://arxiv.org/abs/1910.01108>
