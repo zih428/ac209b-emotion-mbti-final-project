@@ -1,4 +1,4 @@
 artifact_family,expected_directory,status,n_metric_rows
-frozen_transformer_author,artifacts/runs/transformer_author,missing,0
-set_attention_author,artifacts/runs/set_attention_author,missing,0
-paired_emotion_deltas,derived from author score artifacts,missing,0
+frozen_transformer_author,artifacts/runs/transformer_author,available,48
+set_attention_author,artifacts/runs/set_attention_author,available,96
+paired_emotion_deltas,derived from author score artifacts,available,30

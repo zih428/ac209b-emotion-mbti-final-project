@@ -12,7 +12,7 @@ Current implementation entry points:
 
 | Path | Purpose |
 |---|---|
-| `cs1090b_ms4_main_group66.ipynb` | Executed MS4 notebook with outputs embedded. It loads tracked GRU/TF-IDF baseline-layer results and includes transformer-author framing, artifact status, architecture checks, and result tables that populate after full transformer runs. |
+| `cs1090b_ms4_main_group66.ipynb` | Executed MS4 notebook with outputs embedded. It loads tracked GRU/TF-IDF baseline-layer results and MiniLM transformer-author results, including artifact status, architecture checks, summaries, paired deltas, and figures. |
 | `src/ms4mbti/` | Importable helper package for preprocessing, splitting, weighting, metrics, cache metadata, baseline models, Stage 2 modeling, frozen transformer embeddings, author features, negative controls, transformer-author models, visualization, and progress reporting. |
 | `scripts/preprocess_reddit_ms4.py` | Full Reddit preprocessing, MBTI masking, author split, leakage audit, and token truncation audit. |
 | `scripts/cache_emotion_features.py` | DistilBERT emotion probability cache for Reddit posts. |
@@ -69,9 +69,9 @@ Current notebook transformer-author coverage:
 - frozen transformer embedding cache and author-feature construction plan
 - artifact-status table for full transformer runs
 - architecture check showing the set/attention author model does not use temporal positional encoding
-- frozen transformer author result table placeholder that becomes populated after `scripts/run_transformer_author_models.py`
-- set/attention author result table placeholder that becomes populated after `scripts/run_set_attention_author_models.py`
-- paired bootstrap delta table placeholder for real-emotion-minus-text and shuffled-emotion-minus-text deltas
+- frozen transformer author result table from `scripts/run_transformer_author_models.py`
+- set/attention author result table from `scripts/run_set_attention_author_models.py`
+- paired bootstrap delta table for real-emotion-minus-text and shuffled-emotion-minus-text deltas
 - future-work note excluding supervised post-level transformer fine-tuning from the MS4 mainline
 
 ## Environment Management
@@ -144,9 +144,9 @@ uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id 
 uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_emotion_gru_full --emotion-feature-path artifacts/cache/emotion_probs_full.parquet
 uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_gru_len256_full --max-length 256 --pos-weight-variant sqrt
 uv run --extra full python scripts/cache_transformer_embeddings.py
-uv run --extra full python scripts/run_transformer_author_models.py --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max128
-uv run --extra full python scripts/run_set_attention_author_models.py --full-run --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max128
+uv run --extra full python scripts/run_transformer_author_models.py --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max256
+uv run --extra full python scripts/run_set_attention_author_models.py --full-run --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max256
 uv run --extra full python scripts/aggregate_report_results.py
 ```
 
-The build order above regenerates the tracked baseline-layer artifacts and then populates the transformer-author report tables when the MiniLM model and full local artifacts are available. For offline smoke checks, `scripts/cache_transformer_embeddings.py --backend deterministic_hash --max-rows ...` can validate the cache/model plumbing, but deterministic hash embeddings must not be reported as final transformer results.
+The build order above regenerates the tracked baseline-layer artifacts and MiniLM transformer-author report tables. For offline smoke checks, `scripts/cache_transformer_embeddings.py --backend deterministic_hash --max-rows ...` can validate the cache/model plumbing, but deterministic hash embeddings must not be reported as final transformer results.

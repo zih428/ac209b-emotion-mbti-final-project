@@ -803,6 +803,12 @@ def make_transformer_delta_table(
     baseline = pd.read_csv(required["baseline_scores"])
     real = pd.read_csv(required["real_scores"])
     shuffled = pd.read_csv(required["shuffled_scores"])
+    if "split" in baseline.columns:
+        baseline = baseline.loc[baseline["split"] == "test"].copy()
+    if "split" in real.columns:
+        real = real.loc[real["split"] == "test"].copy()
+    if "split" in shuffled.columns:
+        shuffled = shuffled.loc[shuffled["split"] == "test"].copy()
     baseline_thresholds = threshold_series(required["baseline_thresholds"])
     real_thresholds = threshold_series(required["real_thresholds"])
     shuffled_thresholds = threshold_series(required["shuffled_thresholds"])

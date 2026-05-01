@@ -2,7 +2,7 @@
 
 ## Status
 
-Corrected GRU/TF-IDF baseline layer implemented locally and summarized for report/video use. The transformer author-representation code path is now implemented and smoke-tested, with notebook/status cells that make full-transformer result availability explicit. Full MiniLM transformer result artifacts are not yet generated in the tracked report outputs.
+Corrected GRU/TF-IDF baseline layer and MiniLM transformer-author experiments are implemented locally and summarized for report/video use. The executed notebook now includes tracked report-ready transformer result tables, figures, and paired emotion-control deltas.
 
 ## Source Boundary
 
@@ -75,7 +75,7 @@ The video should cover, roughly in order:
 ## Implemented MS4 Modeling Summary
 
 The expanded experiment design is preserved in `tentative_modeling_notebook_design.md`.
-The executed notebook and tracked result artifacts include the corrected baseline layer:
+The executed notebook and tracked result artifacts include the corrected baseline layer and transformer-author layer:
 
 - masked Reddit preprocessing through KaggleHub
 - author-level train/validation/test split
@@ -85,17 +85,23 @@ The executed notebook and tracked result artifacts include the corrected baselin
 - bootstrap confidence intervals over test authors
 - threshold-objective sensitivity for balanced accuracy versus F1
 - token-length audit plus a real fixed text-only GRU 128 versus 256 max-length sensitivity run
+- frozen MiniLM post embeddings aggregated to author features
+- frozen transformer author probes with emotion-only, real-emotion, shuffled-emotion, and control variants
+- set/attention author transformer over unordered post sets with 50 versus 200 post-budget sensitivity
 - report-ready figures, tables, and interpretation in `code/cs1090b_ms4_main_group66.ipynb`
 
 Headline test mean balanced accuracy:
 
+- Set Attention Text + Real Emotion, 200-post budget: 0.6865
+- Set Attention Text, 200-post budget: 0.6778
 - TF-IDF Logistic: 0.6512
+- Frozen MiniLM Text: 0.6293
 - GRU Text + Emotion: 0.6223
 - GRU Text: 0.5964
 - GRU Text Inverse Weight: 0.5855
 - Majority: 0.5000
 
-These tracked numeric results should be treated as the baseline layer, not as completed transformer-author evidence. They support the MS3 diagnosis and show that corrected GRU plus DistilBERT emotion improves over corrected GRU text, while author-level TF-IDF logistic remains the strongest currently tracked model.
+These tracked results support the updated MS4 direction: the strongest current model is the 200-post set/attention author transformer, not the GRU. The emotion story is nuanced: real emotion helps the 200-post set/attention model on the headline mean balanced accuracy, while frozen mean/std probes and 50-post set/attention do not show the same improvement. The report should emphasize matched real-versus-shuffled deltas rather than a blanket claim that emotion always helps.
 
 ## Updated Transformer Author Design
 
@@ -119,7 +125,7 @@ Implemented code entry points:
 - `code/scripts/run_set_attention_author_models.py`
 - `code/scripts/aggregate_report_results.py`
 
-The main notebook includes executed cells for the design, artifact status, schema checks, and report-facing placeholders. Once the full MiniLM embedding cache and transformer author runs are available locally, rerunning aggregation and the notebook will populate the transformer summary and paired-delta tables.
+The main notebook includes executed cells for the design, artifact status, schema checks, transformer summaries, paired-delta tables, and report-facing figures. Large post-level embedding caches and run directories remain under `code/artifacts/` and are intentionally ignored by git; compact report artifacts are tracked under `report/results/`.
 
 ## Suggested Success Metrics
 
