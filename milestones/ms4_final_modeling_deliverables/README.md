@@ -13,6 +13,7 @@ Requirements and deadlines below summarize `requirements.md`, which was transcri
 | Path | Purpose |
 |---|---|
 | `requirements.md` | Markdown summary of the MS4 requirement page. |
+| `tentative_modeling_notebook_design.md` | Tentative MS4 experiment and notebook design; not completed results. |
 | `artifacts/requirements_ms4_final_modeling_deliverables.png` | Screenshot of the MS4 requirement page. |
 | `report/` | Final report assets and drafts. |
 | `video/` | Video script, recording notes, and video link notes. |
@@ -72,6 +73,8 @@ The video should cover, roughly in order:
 - Do not include raw datasets larger than a few hundred MB in a submission zip. Document how to obtain them instead.
 
 ## Recommended MS4 Modeling Plan
+
+For the expanded tentative experiment and notebook design, see `tentative_modeling_notebook_design.md`.
 
 Do not inherit the named person-by-person MS3 task split as a real constraint. That split was tentative and presentation-driven. Reassign work based on availability, implementation needs, and compute constraints.
 

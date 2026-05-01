@@ -76,7 +76,7 @@ Current research question:
 
 ## MS4 Direction
 
-MS4 has not started. The final deliverables should be built around the MS3 diagnosis:
+MS4 has not started. A tentative experiment and notebook plan is recorded in `../milestones/ms4_final_modeling_deliverables/tentative_modeling_notebook_design.md`. The final deliverables should be built around the MS3 diagnosis:
 
 - Class-weighted BCE for the MBTI head.
 - Soft author-level aggregation by averaging post-level probabilities.
