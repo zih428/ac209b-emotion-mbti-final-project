@@ -12,7 +12,7 @@ Current implementation entry points for the corrected baseline layer:
 
 | Path | Purpose |
 |---|---|
-| `cs1090b_ms4_main_group66.ipynb` | Executed report-facing MS4 notebook with outputs embedded. It loads compact tracked results and does not launch long training. |
+| `cs1090b_ms4_main_group66.ipynb` | Executed baseline-layer notebook with outputs embedded. It loads compact tracked GRU/TF-IDF results and does not yet include the updated transformer-author result path. |
 | `src/ms4mbti/` | Importable helper package for preprocessing, splitting, weighting, metrics, cache metadata, baseline models, Stage 2 modeling, and progress reporting. |
 | `scripts/preprocess_reddit_ms4.py` | Full Reddit preprocessing, MBTI masking, author split, leakage audit, and token truncation audit. |
 | `scripts/cache_emotion_features.py` | DistilBERT emotion probability cache for Reddit posts. |

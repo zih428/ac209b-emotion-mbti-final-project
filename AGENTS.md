@@ -32,8 +32,9 @@ Do not scan every notebook, PDF, slide deck, screenshot, or DOCX just because it
 ## Project-Specific Cautions
 
 - The MS3 person-by-person work split was tentative and presentation-driven. Do not treat it as the real MS4 division of labor.
-- MS3 slides and notebook differ slightly on whether Stage 2 DistilBERT is core scope or a stretch goal. Decide this explicitly before implementation.
-- For MS4, build from the MS3 baseline diagnosis: class-weighted BCE, soft author aggregation, validation-tuned thresholds, and improved emotion features.
+- MS3 slides and notebook differ slightly on whether supervised Stage 2 DistilBERT is core scope or a stretch goal. The current MS4 design resolves this by excluding supervised post-level Stage 2 transformer fine-tuning from the report-facing mainline; transformer work should use frozen post embeddings and author-level aggregation instead.
+- For MS4, build from the MS3 baseline diagnosis and the updated transformer-author design: corrected GRU/TF-IDF baseline layer, frozen transformer author features, set/attention author aggregation, emotion-only baseline, shuffled-emotion negative controls, activity/length controls, validation-tuned thresholds, and author-level metrics.
+- Treat emotion probabilities as text-derived transferred representations, not independent emotion measurements or causal mediators.
 - Load Reddit data through KaggleHub. Do not assume a project-local raw CSV exists.
 
 ## Editing Guidance
