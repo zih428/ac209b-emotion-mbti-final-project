@@ -23,6 +23,7 @@ from ms4mbti.embeddings import embedding_columns, read_embedding_cache
 from ms4mbti.evaluation import evaluate_with_validation_thresholds
 from ms4mbti.negative_controls import replace_with_shuffled_features
 from ms4mbti.progress import ProgressLogger
+from ms4mbti.training import set_global_seed
 from ms4mbti.transformer_author import (
     build_author_set_arrays,
     make_score_columns,
@@ -134,8 +135,39 @@ def add_post_controls(posts: pd.DataFrame, *, text_col: str = "text_masked") -> 
     return out
 
 
+def standardize_post_controls_train_only(
+    posts: pd.DataFrame,
+    *,
+    control_cols: tuple[str, ...],
+    split_col: str = "split",
+    fit_split: str = "train",
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Standardize post-level controls using only the training split."""
+
+    out = posts.copy()
+    validate_cols = [split_col, *control_cols]
+    missing = [col for col in validate_cols if col not in out.columns]
+    if missing:
+        raise ValueError(f"Missing columns for post-control standardization: {missing}")
+    fit_frame = out.loc[out[split_col] == fit_split, list(control_cols)].astype(float)
+    if fit_frame.empty:
+        raise ValueError(f"Cannot fit post-control standardization without `{fit_split}` rows")
+    mean = fit_frame.mean()
+    scale = fit_frame.std(ddof=0).replace(0.0, 1.0)
+    out.loc[:, list(control_cols)] = (out[list(control_cols)].astype(float) - mean) / scale
+    metadata = {
+        "method": "standard_score",
+        "fit_split": fit_split,
+        "columns": list(control_cols),
+        "mean": {col: float(mean[col]) for col in control_cols},
+        "scale": {col: float(scale[col]) for col in control_cols},
+    }
+    return out, metadata
+
+
 def main() -> None:
     args = parse_args()
+    set_global_seed(args.seed)
     config = RunConfig(seed=args.seed)
     ensure_artifact_dirs(config)
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -151,6 +183,11 @@ def main() -> None:
         max_authors = args.max_authors_per_split or 32
         posts = sample_authors(posts, max_authors_per_split=max_authors, seed=args.seed)
     posts = add_post_controls(posts)
+    control_cols = ("post_token_length", "post_is_over_128", "post_log_token_length")
+    posts, control_scaling = standardize_post_controls_train_only(
+        posts,
+        control_cols=control_cols,
+    )
     embeddings, _manifest = read_embedding_cache(args.embedding_cache_dir)
     emotion = pd.read_parquet(args.emotion_feature_path)
     merged = posts.merge(
@@ -198,7 +235,6 @@ def main() -> None:
             result.thresholds.to_csv(args.output_dir / f"thresholds_{model_id}.csv", index=False)
 
     emb_cols = embedding_columns(merged)
-    control_cols = ("post_token_length", "post_is_over_128", "post_log_token_length")
     shuffled_posts = replace_with_shuffled_features(
         merged,
         feature_cols=EMOTION_FEATURE_COLUMNS,
@@ -246,6 +282,7 @@ def main() -> None:
                 post_budget=post_budget,
                 epochs=epochs,
                 batch_size=args.batch_size,
+                seed=args.seed,
             )
             histories.append(history)
             scores = predict_set_attention_scores(model, arrays, model_id=model_id)
@@ -263,6 +300,7 @@ def main() -> None:
         "seed": int(args.seed),
         "set_variants": args.set_variants,
         "skip_pooling": bool(args.skip_pooling),
+        "post_control_scaling": control_scaling,
         "model_summaries": summaries,
         "output_dir": str(args.output_dir),
     }

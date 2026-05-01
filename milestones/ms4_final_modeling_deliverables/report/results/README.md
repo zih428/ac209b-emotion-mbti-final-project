@@ -20,8 +20,10 @@ Transformer-author top-line test mean balanced accuracy:
 
 | model | test mean balanced accuracy |
 |---|---:|
-| Set Attention Text + Real Emotion p=200 | 0.6865 |
-| Set Attention Text p=200 | 0.6778 |
+| Set Attention Text + Controls p=200 | 0.6817 |
+| Set Attention Text p=200 | 0.6815 |
+| Set Attention Text + Shuffled Emotion p=200 | 0.6773 |
+| Set Attention Text + Real Emotion p=200 | 0.6653 |
 | Frozen Text | 0.6293 |
 
 Additional diagnostics included here:

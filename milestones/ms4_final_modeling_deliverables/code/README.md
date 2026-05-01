@@ -63,6 +63,8 @@ Current notebook coverage:
 - full reproduction commands showing which scripts generate the training outputs consumed by the notebook
 - final takeaways suitable for report and video planning
 
+The set/attention training entry point fixes the requested seed before model initialization, uses a seeded PyTorch `DataLoader` generator for shuffled training batches, and standardizes post-level control columns with training-split statistics only.
+
 ## Environment Management
 
 Use `uv` from this directory as the dependency source of truth:

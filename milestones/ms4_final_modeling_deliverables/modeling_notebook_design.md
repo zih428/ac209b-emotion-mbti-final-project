@@ -1,6 +1,6 @@
 # MS4 Modeling and Notebook Design
 
-Status: **design reference plus implementation checklist; MiniLM transformer-author MS4 results are now generated in tracked report artifacts**.
+Status: **implemented design reference; MiniLM transformer-author MS4 results are generated in tracked report artifacts and the final notebook now reflects the seeded reruns plus train-only control scaling**.
 
 This document records the scientific plan for the MS4 code notebook. It guides implementation, report writing, and video planning, and should be revised if experiments reveal that a different design is more defensible.
 
@@ -27,7 +27,7 @@ The scientific status of the emotion channel must be stated precisely. The emoti
 
 > transferred emotion representations provide incremental predictive information beyond matched text representations under author-level evaluation.
 
-This framing matters for both methods and interpretation. If emotion-only features perform well, the report should treat them as a compressed text-derived proxy representation, not as evidence that true emotional state directly determines MBTI type. If text-plus-emotion improves over matched text-only models while shuffled-emotion controls do not, the report can claim that the structured emotion representation captures useful author-level information that is not fully recovered by that text representation.
+This framing matters for both methods and interpretation. If emotion-only features perform well, the report treats them as a compressed text-derived proxy representation, not as evidence that true emotional state directly determines MBTI type. If text-plus-emotion improves over matched text-only models while shuffled-emotion controls do not, the report can claim that the structured emotion representation captures useful author-level information that is not fully recovered by that text representation. The implemented MS4 results are more cautious: author-level set/attention modeling is robust, while the emotion-specific increment is not stable enough to claim as a standalone gain.
 
 This creates three scientific layers:
 
@@ -158,7 +158,7 @@ New transformer-centered core:
 - Set/attention author transformer over each author's unordered post embeddings, with text-only, text plus real emotion, text plus shuffled emotion, text plus controls, and text plus real emotion plus controls.
 - Mean-pooling and mean-plus-std pooling ablations for the set/attention author transformer.
 - A two-level post-budget sensitivity for author transformer models, using 50 versus 200 retained posts per author.
-- A small supplemental stability check for the winning 200-post set/attention setting: two additional seeds at 5 epochs and 10/20 epoch sensitivity for text-only, text plus real emotion, and text plus shuffled emotion.
+- A small supplemental stability check for the planned high-history 200-post set/attention setting: two additional seeds at 5 epochs and 10/20 epoch sensitivity for text-only, text plus real emotion, and text plus shuffled emotion.
 - Unified emotion-increment analysis across GRU, frozen-transformer, and set/attention-transformer families.
 
 Out of scope for the core:
@@ -233,7 +233,7 @@ Generate post-level text embeddings using a pretrained sentence or compact trans
 
 Recommended starting point:
 
-- `sentence-transformers/all-MiniLM-L6-v2`, because it maps sentences and short paragraphs to 384-dimensional vectors and is designed for embedding-style use.
+- Hugging Face Transformers encoder model id `sentence-transformers/all-MiniLM-L6-v2`, with manual mean pooling to produce 384-dimensional post embeddings.
 
 Author features:
 
@@ -265,7 +265,7 @@ Purpose:
 - Tests whether transferred emotion probabilities contain standalone author-level signal.
 - Helps interpret later text-plus-emotion gains.
 - If emotion-only is weak but text-plus-emotion improves over text-only, emotion is complementary rather than sufficient.
-- If emotion-only is strong, the report should treat emotion features as a substantial proxy representation of the underlying text, not merely a small auxiliary signal.
+- If emotion-only is strong, the report treats emotion features as a substantial proxy representation of the underlying text, not merely a small auxiliary signal.
 
 ### 7. Frozen Transformer Text Plus Emotion
 
@@ -384,7 +384,7 @@ Purpose:
 
 ### 14. Supplemental Stability Checks
 
-For the strongest 200-post set/attention setting, run a compact robustness check rather than a large grid:
+For the planned high-history 200-post set/attention setting, run a compact robustness check rather than a large grid:
 
 - Repeat the 5-epoch p200 text-only, text-plus-real-emotion, and text-plus-shuffled-emotion variants with two additional seeds.
 - Run p200 epoch sensitivity at 10 and 20 epochs for the same three variants.
@@ -392,7 +392,7 @@ For the strongest 200-post set/attention setting, run a compact robustness check
 
 Purpose:
 
-- Tests whether the real-emotion increment is stable enough to describe as more than a single-seed artifact.
+- Tests whether the real-emotion increment is stable enough to describe as more than a single-seed artifact. In the implemented results, it is not; the robust claim is the author-level p200 set/attention formulation.
 - Tests whether the p200 set/attention ranking is sensitive to short training.
 - Keeps the additional compute tied to the main scientific comparison.
 
@@ -789,7 +789,7 @@ The core MS4 plan should not require rented GPU compute if implemented efficient
 - scikit-learn ROC-AUC: <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.roc_auc_score.html>
 - scikit-learn TF-IDF vectorizer: <https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html>
 - scikit-learn logistic regression: <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html>
-- Sentence-transformers `all-MiniLM-L6-v2` model card: <https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2>
+- Hugging Face model card for `sentence-transformers/all-MiniLM-L6-v2`: <https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2>
 - Microsoft MiniLM model card: <https://huggingface.co/microsoft/MiniLM-L12-H384-uncased>
 - Hugging Face Apple Silicon / MPS training note: <https://huggingface.co/docs/transformers/perf_train_special>
 - DistilBERT paper: <https://arxiv.org/abs/1910.01108>

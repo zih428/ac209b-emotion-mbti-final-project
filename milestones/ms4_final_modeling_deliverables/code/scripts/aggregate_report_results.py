@@ -1431,8 +1431,10 @@ def main() -> None:
 
     transformer_top_rows = []
     for model_id in [
-        "set_attention_text_real_emotion_p200",
+        "set_attention_text_controls_p200",
         "set_attention_text_p200",
+        "set_attention_text_shuffled_emotion_p200",
+        "set_attention_text_real_emotion_p200",
         "frozen_text_mean_std",
     ]:
         source = (

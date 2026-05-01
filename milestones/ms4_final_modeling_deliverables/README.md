@@ -92,8 +92,10 @@ The executed notebook and tracked result artifacts include the corrected baselin
 
 Headline test mean balanced accuracy:
 
-- Set Attention Text + Real Emotion, 200-post budget: 0.6865
-- Set Attention Text, 200-post budget: 0.6778
+- Set Attention Text + Controls, 200-post budget: 0.6817
+- Set Attention Text, 200-post budget: 0.6815
+- Set Attention Text + Shuffled Emotion, 200-post budget: 0.6773
+- Set Attention Text + Real Emotion, 200-post budget: 0.6653
 - TF-IDF Logistic: 0.6512
 - Frozen MiniLM Text: 0.6293
 - GRU Text + Emotion: 0.6223
@@ -101,7 +103,7 @@ Headline test mean balanced accuracy:
 - GRU Text Inverse Weight: 0.5855
 - Majority: 0.5000
 
-These tracked results support the updated MS4 direction: the strongest current family is the 200-post set/attention author transformer, not the GRU. Supplemental seed and epoch checks make the emotion story more cautious: real emotion is competitive and sometimes improves over text-only, but shuffled emotion and text-only can match or exceed it under some seeds/training lengths. The report should emphasize author-level transformer modeling as the robust gain and describe emotion as suggestive transferred signal rather than a decisive standalone improvement.
+These tracked results support the updated MS4 direction: the robust model family is the 200-post set/attention author transformer, not the GRU. The revised seeded runs and train-only standardized post controls make the emotion story more cautious: real emotion is not the best main p200 variant, and shuffled emotion or text-only can match or exceed it under some seeds/training lengths. The final writeup therefore emphasizes author-level transformer modeling as the robust gain and describes emotion as a suggestive transferred representation rather than a decisive standalone improvement.
 
 ## Updated Transformer Author Design
 
@@ -110,7 +112,7 @@ The current implementation supports the final scientific claim by adding transfo
 - emotion probabilities are framed as text-derived transferred representations, not independent measurements or causal mediators
 - primary estimand: matched `text + real emotion` minus `text-only` at the author level
 - negative control: matched `text + shuffled emotion` minus `text-only`
-- activity/length controls: retained post count, post length, truncation exposure, and total retained token count
+- activity/length controls: retained post count, post length, truncation exposure, total retained token count, and train-only standardized post-level length controls for set/attention variants
 - emotion-only author baseline to distinguish standalone signal, complementarity, and compressed text proxy behavior
 - frozen transformer author classifiers using post-embedding summaries
 - set/attention author transformer over unordered post embeddings

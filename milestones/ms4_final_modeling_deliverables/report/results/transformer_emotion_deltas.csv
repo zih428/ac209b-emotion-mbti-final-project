@@ -9,23 +9,23 @@ Frozen transformer: shuffled emotion minus text,balanced_accuracy,target_S,-0.00
 Frozen transformer: shuffled emotion minus text,balanced_accuracy,target_T,0.010282367662594716,0.0009653175631518824,0.019174358979572974,2000,1563
 Frozen transformer: shuffled emotion minus text,balanced_accuracy,target_J,-8.718216970782233e-05,-0.01759605745710291,0.016224338961645268,2000,1563
 Frozen transformer: shuffled emotion minus text,balanced_accuracy,mean,-0.001864466128046166,-0.011989883261818024,0.008057829575019174,2000,1563
-Set attention p=50: real emotion minus text,balanced_accuracy,target_E,-0.014168570913502432,-0.03561461643343675,0.005404306474493955,2000,1563
-Set attention p=50: real emotion minus text,balanced_accuracy,target_S,-0.03261806780325305,-0.0861798370327644,0.013278364641710769,2000,1563
-Set attention p=50: real emotion minus text,balanced_accuracy,target_T,-0.010925977209555127,-0.02626510141561105,0.004483982688347943,2000,1563
-Set attention p=50: real emotion minus text,balanced_accuracy,target_J,-0.004864252233402033,-0.026226207644539177,0.016121786462480362,2000,1563
-Set attention p=50: real emotion minus text,balanced_accuracy,mean,-0.01564421703992816,-0.030761496740873466,-0.0015065330309796587,2000,1563
-Set attention p=50: shuffled emotion minus text,balanced_accuracy,target_E,0.0028795135522283744,-0.015990672177860703,0.023675689396668382,2000,1563
-Set attention p=50: shuffled emotion minus text,balanced_accuracy,target_S,0.006711738193219685,-0.029937799786532864,0.04142812386269219,2000,1563
-Set attention p=50: shuffled emotion minus text,balanced_accuracy,target_T,0.010913156302245208,-0.007288880355982297,0.02822897466699966,2000,1563
-Set attention p=50: shuffled emotion minus text,balanced_accuracy,target_J,0.006369426751592355,-0.011671114016844652,0.02544383513604044,2000,1563
-Set attention p=50: shuffled emotion minus text,balanced_accuracy,mean,0.006718458699821406,-0.0049508177318389485,0.018712111442049182,2000,1563
-Set attention p=200: real emotion minus text,balanced_accuracy,target_E,-0.006659179606612664,-0.02889983882258984,0.016331574730237598,2000,1563
-Set attention p=200: real emotion minus text,balanced_accuracy,target_S,0.018361747991377575,-0.019723360717060892,0.05702818462335201,2000,1563
-Set attention p=200: real emotion minus text,balanced_accuracy,target_T,0.01253115480476319,-0.005086531824130316,0.029216402881997953,2000,1563
-Set attention p=200: real emotion minus text,balanced_accuracy,target_J,0.010413140917156394,-0.00912762610865528,0.029557576143901646,2000,1563
-Set attention p=200: real emotion minus text,balanced_accuracy,mean,0.008661716026671124,-0.004052069714993238,0.02225161152090575,2000,1563
-Set attention p=200: shuffled emotion minus text,balanced_accuracy,target_E,0.005114668953386969,-0.019693863824229923,0.03020258421330053,2000,1563
-Set attention p=200: shuffled emotion minus text,balanced_accuracy,target_S,0.008250048990789738,-0.02847573714960177,0.04553240550094098,2000,1563
-Set attention p=200: shuffled emotion minus text,balanced_accuracy,target_T,-0.007918192354636533,-0.026801396036335617,0.009970295868944677,2000,1563
-Set attention p=200: shuffled emotion minus text,balanced_accuracy,target_J,-0.015987671415530702,-0.03523246553434603,0.0036561032948243745,2000,1563
-Set attention p=200: shuffled emotion minus text,balanced_accuracy,mean,-0.002635286456497632,-0.015383481573539037,0.010292353593695637,2000,1563
+Set attention p=50: real emotion minus text,balanced_accuracy,target_E,-0.004495890237425915,-0.03173477082894485,0.02175296435574074,2000,1563
+Set attention p=50: real emotion minus text,balanced_accuracy,target_S,-0.01470703507740545,-0.040765403330133974,0.011004205312186106,2000,1563
+Set attention p=50: real emotion minus text,balanced_accuracy,target_T,-0.007433562058319687,-0.025536886421811664,0.010522349779759252,2000,1563
+Set attention p=50: real emotion minus text,balanced_accuracy,target_J,-0.013449131768156986,-0.030818119853394128,0.00302763234428852,2000,1563
+Set attention p=50: real emotion minus text,balanced_accuracy,mean,-0.01002140478532701,-0.021039823203587625,0.0009053926793696655,2000,1563
+Set attention p=50: shuffled emotion minus text,balanced_accuracy,target_E,-0.01559492893789316,-0.04148985626852843,0.009378221504724175,2000,1563
+Set attention p=50: shuffled emotion minus text,balanced_accuracy,target_S,-0.01882226141485399,-0.06841897991158129,0.026776597291626614,2000,1563
+Set attention p=50: shuffled emotion minus text,balanced_accuracy,target_T,-0.005123234561063339,-0.01733747430271732,0.006544170187176146,2000,1563
+Set attention p=50: shuffled emotion minus text,balanced_accuracy,target_J,-0.013254253977045383,-0.03196540452479671,0.0049444321960319644,2000,1563
+Set attention p=50: shuffled emotion minus text,balanced_accuracy,mean,-0.013198669722713968,-0.02809757506966771,0.0011416137037712696,2000,1563
+Set attention p=200: real emotion minus text,balanced_accuracy,target_E,-0.01302236860696837,-0.03092919809936303,0.006335332210028506,2000,1563
+Set attention p=200: real emotion minus text,balanced_accuracy,target_S,-0.04377816970409565,-0.09058813263476666,0.003148216741238649,2000,1563
+Set attention p=200: real emotion minus text,balanced_accuracy,target_T,-0.00774639219668305,-0.021231530519225775,0.0054883175203176635,2000,1563
+Set attention p=200: real emotion minus text,balanced_accuracy,target_J,-0.00019744197257365315,-0.015850725431013388,0.014999411410203771,2000,1563
+Set attention p=200: real emotion minus text,balanced_accuracy,mean,-0.01618609312008018,-0.030450679525193827,-0.0023368565220719113,2000,1563
+Set attention p=200: shuffled emotion minus text,balanced_accuracy,target_E,0.00108651695794737,-0.016274936622761194,0.019361672904865266,2000,1563
+Set attention p=200: shuffled emotion minus text,balanced_accuracy,target_S,-0.018763472467176245,-0.058567229673787025,0.021704540333492263,2000,1563
+Set attention p=200: shuffled emotion minus text,balanced_accuracy,target_T,-0.00011282398432777008,-0.012214154636744367,0.01149281049168287,2000,1563
+Set attention p=200: shuffled emotion minus text,balanced_accuracy,target_J,0.0010974696657332084,-0.012949458678975618,0.015200595019975869,2000,1563
+Set attention p=200: shuffled emotion minus text,balanced_accuracy,mean,-0.004173077456955859,-0.016693457098392962,0.006636408730056569,2000,1563

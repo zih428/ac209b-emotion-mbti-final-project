@@ -16,7 +16,7 @@ from .config import TARGET_COLUMNS
 from .evaluation import evaluate_with_validation_thresholds
 from .models import SetAttentionAuthorConfig, build_set_attention_author_model
 from .preprocessing import validate_required_columns
-from .training import optional_torch, resolve_device
+from .training import optional_torch, resolve_device, set_global_seed
 
 
 @dataclass(frozen=True)
@@ -193,19 +193,31 @@ def train_set_attention_model(
     lr: float = 1e-3,
     patience: int = 2,
     device: str | None = None,
+    seed: int | None = None,
 ):
     """Train a small order-agnostic set/attention author model."""
 
     torch = optional_torch()
     if torch is None:
         raise RuntimeError("PyTorch is required for set/attention training")
+    if seed is not None:
+        set_global_seed(seed)
     device = device or resolve_device(prefer_mps=True, allow_cpu=True)
     model = build_set_attention_author_model(
         SetAttentionAuthorConfig(input_dim=arrays.post_features.shape[-1])
     ).to(device)
     train_ds = make_author_set_dataset(arrays, "train")
     val_ds = make_author_set_dataset(arrays, "val")
-    train_loader = torch.utils.data.DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    generator = None
+    if seed is not None:
+        generator = torch.Generator()
+        generator.manual_seed(seed)
+    train_loader = torch.utils.data.DataLoader(
+        train_ds,
+        batch_size=batch_size,
+        shuffle=True,
+        generator=generator,
+    )
     val_loader = torch.utils.data.DataLoader(val_ds, batch_size=batch_size)
     pos = arrays.targets[arrays.split == "train"].mean(axis=0)
     pos_weight = np.sqrt((1.0 - pos) / np.clip(pos, 1e-6, None)).astype(np.float32)
