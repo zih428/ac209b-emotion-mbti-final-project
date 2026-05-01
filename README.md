@@ -66,7 +66,7 @@ Do text plus emotion-informed features improve author-level prediction of the fo
 Before writing or revising final code/report text, read:
 
 - `milestones/ms4_final_modeling_deliverables/README.md`
-- `milestones/ms4_final_modeling_deliverables/modeling_notebook_design.md`
+- `milestones/ms4_final_modeling_deliverables/ms4_experiment_summary.md`
 - `milestones/ms3_eda_baseline_pipeline/README.md`
 - `data/README.md`
 

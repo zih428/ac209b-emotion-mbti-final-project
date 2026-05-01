@@ -6,14 +6,14 @@ Corrected GRU/TF-IDF baseline layer and MiniLM transformer-author experiments ar
 
 ## Source Boundary
 
-Requirements and deadlines below summarize `requirements.md`, which was transcribed from the MS4 requirement screenshot. The modeling plan is a recommendation derived from MS3 results, MS3 future-pipeline notes, TA feedback, and the team note that the MS3 person-by-person work split was tentative.
+Requirements and deadlines below summarize `requirements.md`, which was transcribed from the MS4 requirement screenshot. The modeling design now reflects the implemented MS4 experiments and tracked result artifacts; older MS3 future-pipeline notes and person-by-person work splits should be treated only as historical context.
 
 ## Files and Work Areas
 
 | Path | Purpose |
 |---|---|
 | `requirements.md` | Markdown summary of the MS4 requirement page. |
-| `modeling_notebook_design.md` | Current MS4 experiment and notebook design, including transformer-author experiments. |
+| `ms4_experiment_summary.md` | Implemented MS4 experiment summary, notebook organization, headline results, and report/video guidance. |
 | `artifacts/requirements_ms4_final_modeling_deliverables.png` | Screenshot of the MS4 requirement page. |
 | `report/results/` | Tracked report-ready CSV/PNG result artifacts used by the executed notebook. |
 | `video/` | Video script, recording notes, and video link notes. |
@@ -74,7 +74,7 @@ The video should cover, roughly in order:
 
 ## Implemented MS4 Modeling Summary
 
-The expanded experiment design is preserved in `modeling_notebook_design.md`.
+The implemented experiment summary is preserved in `ms4_experiment_summary.md`.
 The executed notebook and tracked result artifacts include the corrected baseline layer and transformer-author layer:
 
 - masked Reddit preprocessing through KaggleHub
