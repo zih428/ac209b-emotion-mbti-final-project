@@ -12,6 +12,13 @@ Tracked result artifacts:
 report/results/
 ```
 
+Source-of-truth rule:
+
+- Generated numeric tables and figures live in `report/results/`.
+- This file is the human-readable source for the scientific story and headline
+  interpretation.
+- Other README files should link here instead of repeating result numbers.
+
 ## Final Scientific Story
 
 The project predicts four binary MBTI dimensions from Reddit writing at the

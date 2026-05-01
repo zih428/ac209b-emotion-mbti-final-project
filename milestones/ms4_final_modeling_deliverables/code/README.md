@@ -2,6 +2,10 @@
 
 Use this folder for the final main notebook and supporting scripts.
 
+This README documents code, environment, tests, and reproduction commands. For
+result numbers and interpretation, use `../report/results/` and
+`../ms4_experiment_summary.md`.
+
 Recommended main notebook name:
 
 ```text

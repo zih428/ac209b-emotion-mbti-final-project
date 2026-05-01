@@ -6,6 +6,9 @@ Tracked CSVs and PNGs here are small report inputs. Large checkpoints,
 post-level parquet scores, and full preprocessing caches remain under
 `code/artifacts/` and are intentionally ignored by git.
 
+This directory is the numeric source of truth for generated MS4 result tables
+and figures. Narrative interpretation lives in `../../ms4_experiment_summary.md`.
+
 Top-line test mean balanced accuracy:
 
 | model | test mean balanced accuracy |
