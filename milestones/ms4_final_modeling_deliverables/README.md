@@ -2,7 +2,7 @@
 
 ## Status
 
-Corrected GRU/TF-IDF baseline layer implemented locally and summarized for report/video use. The expanded transformer author-representation design has been updated but is not yet implemented in the tracked result artifacts.
+Corrected GRU/TF-IDF baseline layer implemented locally and summarized for report/video use. The transformer author-representation code path is now implemented and smoke-tested, with notebook/status cells that make full-transformer result availability explicit. Full MiniLM transformer result artifacts are not yet generated in the tracked report outputs.
 
 ## Source Boundary
 
@@ -13,7 +13,7 @@ Requirements and deadlines below summarize `requirements.md`, which was transcri
 | Path | Purpose |
 |---|---|
 | `requirements.md` | Markdown summary of the MS4 requirement page. |
-| `tentative_modeling_notebook_design.md` | Current MS4 experiment and notebook design; not completed transformer-author results. |
+| `tentative_modeling_notebook_design.md` | Current MS4 experiment and notebook design, including transformer-author experiments. |
 | `artifacts/requirements_ms4_final_modeling_deliverables.png` | Screenshot of the MS4 requirement page. |
 | `report/results/` | Tracked report-ready CSV/PNG result artifacts used by the executed notebook. |
 | `video/` | Video script, recording notes, and video link notes. |
@@ -75,7 +75,7 @@ The video should cover, roughly in order:
 ## Implemented MS4 Modeling Summary
 
 The expanded experiment design is preserved in `tentative_modeling_notebook_design.md`.
-The executed notebook and tracked result artifacts currently implement the corrected baseline layer:
+The executed notebook and tracked result artifacts include the corrected baseline layer:
 
 - masked Reddit preprocessing through KaggleHub
 - author-level train/validation/test split
@@ -95,11 +95,11 @@ Headline test mean balanced accuracy:
 - GRU Text Inverse Weight: 0.5855
 - Majority: 0.5000
 
-These tracked results should be treated as the baseline layer, not as the complete updated MS4 design. They support the MS3 diagnosis and show that corrected GRU plus DistilBERT emotion improves over corrected GRU text, while author-level TF-IDF logistic remains the strongest currently tracked model.
+These tracked numeric results should be treated as the baseline layer, not as completed transformer-author evidence. They support the MS3 diagnosis and show that corrected GRU plus DistilBERT emotion improves over corrected GRU text, while author-level TF-IDF logistic remains the strongest currently tracked model.
 
 ## Updated Transformer Author Design
 
-The current design strengthens the final scientific claim by adding transformer author representations and stricter emotion controls:
+The current implementation supports the final scientific claim by adding transformer author representations and stricter emotion controls:
 
 - emotion probabilities are framed as text-derived transferred representations, not independent measurements or causal mediators
 - primary estimand: matched `text + real emotion` minus `text-only` at the author level
@@ -111,6 +111,15 @@ The current design strengthens the final scientific claim by adding transformer 
 - mean-pooling and mean-plus-std pooling ablations for the author transformer
 - 50 versus 200 retained-post budget sensitivity
 - supervised post-level transformer fine-tuning excluded from the MS4 mainline because it changes the estimand and reintroduces post-label noise
+
+Implemented code entry points:
+
+- `code/scripts/cache_transformer_embeddings.py`
+- `code/scripts/run_transformer_author_models.py`
+- `code/scripts/run_set_attention_author_models.py`
+- `code/scripts/aggregate_report_results.py`
+
+The main notebook includes executed cells for the design, artifact status, schema checks, and report-facing placeholders. Once the full MiniLM embedding cache and transformer author runs are available locally, rerunning aggregation and the notebook will populate the transformer summary and paired-delta tables.
 
 ## Suggested Success Metrics
 

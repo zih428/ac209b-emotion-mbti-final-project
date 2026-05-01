@@ -1,6 +1,6 @@
 # MS4 Tentative Modeling and Notebook Design
 
-Status: **tentative design, not completed MS4 results**.
+Status: **design reference plus implementation checklist; full transformer-author MS4 results are not yet generated**.
 
 This document records the proposed scientific plan for the MS4 code notebook. It is meant to guide implementation, report writing, and video planning, but should be revised if experiments reveal that a different design is more defensible.
 
@@ -658,7 +658,7 @@ The submitted notebook should support two paths:
 - The notebook should show live progress for long steps, such as training epochs, validation passes, Reddit inference shards, and ablation runs.
 - Progress reporting should make it clear which experiment is running, how far it has progressed, and where outputs are being written.
 
-These are design requirements for the MS4 implementation, not completed features.
+These requirements are now reflected in the code/notebook structure, but the full MiniLM transformer-author result artifacts still need to be generated locally before they become report claims.
 
 ## Code Notebook Submission Package
 

@@ -8,32 +8,32 @@ Recommended main notebook name:
 cs1090b_ms4_main_group66.ipynb
 ```
 
-Current implementation entry points for the corrected baseline layer:
+Current implementation entry points:
 
 | Path | Purpose |
 |---|---|
-| `cs1090b_ms4_main_group66.ipynb` | Executed baseline-layer notebook with outputs embedded. It loads compact tracked GRU/TF-IDF results and does not yet include the updated transformer-author result path. |
-| `src/ms4mbti/` | Importable helper package for preprocessing, splitting, weighting, metrics, cache metadata, baseline models, Stage 2 modeling, and progress reporting. |
+| `cs1090b_ms4_main_group66.ipynb` | Executed MS4 notebook with outputs embedded. It loads tracked GRU/TF-IDF baseline-layer results and includes transformer-author framing, artifact status, architecture checks, and result tables that populate after full transformer runs. |
+| `src/ms4mbti/` | Importable helper package for preprocessing, splitting, weighting, metrics, cache metadata, baseline models, Stage 2 modeling, frozen transformer embeddings, author features, negative controls, transformer-author models, visualization, and progress reporting. |
 | `scripts/preprocess_reddit_ms4.py` | Full Reddit preprocessing, MBTI masking, author split, leakage audit, and token truncation audit. |
 | `scripts/cache_emotion_features.py` | DistilBERT emotion probability cache for Reddit posts. |
 | `scripts/run_author_baselines.py` | Majority and TF-IDF author-level baselines. |
 | `scripts/train_stage2_text_gru.py` | Text-only and text-plus-emotion Stage 2 GRU training/evaluation entry point. |
+| `scripts/cache_transformer_embeddings.py` | Frozen transformer post-embedding cache job with resumable shards and manifest metadata. |
+| `scripts/run_transformer_author_models.py` | Frozen transformer author classifiers: text, emotion-only, shuffled emotion, real emotion, controls, and real emotion plus controls. |
+| `scripts/run_set_attention_author_models.py` | Mean-pooling, mean-plus-std, set/attention author transformer, and 50 versus 200 post-budget sensitivity. |
 | `scripts/aggregate_report_results.py` | Builds tracked report-ready CSV/PNG artifacts from local run outputs. |
 | `scripts/run_smoke_checks.py` | Command-line synthetic smoke test for the default non-training path. |
 | `tests/test_smoke.py` | Pytest wrapper for the same non-training smoke path. |
 | `pyproject.toml` / `uv.lock` | Reproducible dependency and package management through `uv`. |
 
-Updated design entry points to add before the transformer-author results are report-facing:
+Transformer-author helper modules:
 
 | Path | Purpose |
 |---|---|
-| `src/ms4mbti/embeddings.py` | Frozen transformer post-embedding inference and cache metadata. |
+| `src/ms4mbti/embeddings.py` | Frozen transformer post-embedding inference and cache metadata. Supports real transformer inference and deterministic smoke caches. |
 | `src/ms4mbti/author_features.py` | Author-level text, emotion, activity, length, and truncation feature construction. |
 | `src/ms4mbti/negative_controls.py` | Deterministic split-preserving shuffled-emotion feature tables. |
 | `src/ms4mbti/transformer_author.py` | Mean-pooling, mean-plus-std, and set/attention author transformer training helpers. |
-| `scripts/cache_transformer_embeddings.py` | Full-corpus frozen transformer embedding cache job. |
-| `scripts/run_transformer_author_models.py` | Frozen transformer author classifiers: text, emotion-only, shuffled emotion, real emotion, controls, and real emotion plus controls. |
-| `scripts/run_set_attention_author_models.py` | Set/attention author transformer, pooling ablations, and 50 versus 200 post-budget sensitivity. |
 
 Minimum sections:
 
@@ -63,16 +63,15 @@ Current notebook coverage for the tracked baseline-layer results:
 - token-length audit and 128 versus 256 GRU training sensitivity
 - run-level commands, interpretation, references, and disclosure
 
-Updated notebook sections required by the current design:
+Current notebook transformer-author coverage:
 
 - explicit statement that emotion probabilities are text-derived transferred representations, not independent emotion measurements or causal mediators
-- frozen transformer embedding cache and author-feature construction
-- emotion-only author baseline
-- frozen transformer author models with text-only, shuffled emotion, real emotion, controls, and real emotion plus controls
-- set/attention author transformer over unordered post embeddings with matched shuffled-emotion and control variants
-- mean-pooling and mean-plus-std pooling ablations
-- 50 versus 200 retained-post sensitivity
-- paired bootstrap intervals for real-emotion-minus-text and shuffled-emotion-minus-text deltas
+- frozen transformer embedding cache and author-feature construction plan
+- artifact-status table for full transformer runs
+- architecture check showing the set/attention author model does not use temporal positional encoding
+- frozen transformer author result table placeholder that becomes populated after `scripts/run_transformer_author_models.py`
+- set/attention author result table placeholder that becomes populated after `scripts/run_set_attention_author_models.py`
+- paired bootstrap delta table placeholder for real-emotion-minus-text and shuffled-emotion-minus-text deltas
 - future-work note excluding supervised post-level transformer fine-tuning from the MS4 mainline
 
 ## Environment Management
@@ -144,7 +143,10 @@ uv run --extra full python scripts/train_stage2_text_gru.py --full-run
 uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_gru_inverse_full --pos-weight-variant inverse
 uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_emotion_gru_full --emotion-feature-path artifacts/cache/emotion_probs_full.parquet
 uv run --extra full python scripts/train_stage2_text_gru.py --full-run --run-id stage2_text_gru_len256_full --max-length 256 --pos-weight-variant sqrt
+uv run --extra full python scripts/cache_transformer_embeddings.py
+uv run --extra full python scripts/run_transformer_author_models.py --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max128
+uv run --extra full python scripts/run_set_attention_author_models.py --full-run --embedding-cache-dir artifacts/cache/transformer_embeddings/sentence-transformers__all-MiniLM-L6-v2_max128
 uv run --extra full python scripts/aggregate_report_results.py
 ```
 
-The build order above regenerates the currently tracked baseline-layer artifacts. After the transformer-author scripts are implemented, the full build order should insert transformer embedding caching, frozen author classifiers, set/attention author classifiers, and the updated aggregation step before `scripts/aggregate_report_results.py`.
+The build order above regenerates the tracked baseline-layer artifacts and then populates the transformer-author report tables when the MiniLM model and full local artifacts are available. For offline smoke checks, `scripts/cache_transformer_embeddings.py --backend deterministic_hash --max-rows ...` can validate the cache/model plumbing, but deterministic hash embeddings must not be reported as final transformer results.
