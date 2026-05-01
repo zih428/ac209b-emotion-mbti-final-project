@@ -12,7 +12,7 @@ Current implementation entry points:
 
 | Path | Purpose |
 |---|---|
-| `cs1090b_ms4_main_group66.ipynb` | Executed MS4 notebook with outputs embedded. It loads tracked GRU/TF-IDF baseline-layer results and MiniLM transformer-author results, including artifact status, architecture checks, summaries, paired deltas, and figures. |
+| `cs1090b_ms4_main_group66.ipynb` | Executed MS4 notebook with outputs embedded. It tells the final scientific story, loads tracked GRU/TF-IDF baseline-layer results and MiniLM transformer-author results, and explains the full script-based reproduction path. |
 | `src/ms4mbti/` | Importable helper package for preprocessing, splitting, weighting, metrics, cache metadata, baseline models, Stage 2 modeling, frozen transformer embeddings, author features, negative controls, transformer-author models, visualization, and progress reporting. |
 | `scripts/preprocess_reddit_ms4.py` | Full Reddit preprocessing, MBTI masking, author split, leakage audit, and token truncation audit. |
 | `scripts/cache_emotion_features.py` | DistilBERT emotion probability cache for Reddit posts. |
@@ -48,32 +48,20 @@ Minimum sections:
 9. Ablations.
 10. Interpretation and reproducibility notes.
 
-Current notebook coverage for the tracked baseline-layer results:
+Current notebook coverage:
 
-- uv/package/hardware environment check
-- preprocessing, leakage, split-balance, and token-truncation audits
-- pipeline diagram and report artifact manifest
-- author-level model summary and per-dimension test metrics
-- bootstrap confidence intervals over test authors
-- emotion feature gain visualization
+- project framing, group metadata, dependency notes, and references
+- author-level scientific framing with emotion features treated as text-derived transferred representations
+- preprocessing, leakage, split-balance, token-truncation, and post-budget audits
+- author-level baseline results for majority, TF-IDF, and corrected GRU models
+- per-dimension metrics, bootstrap uncertainty, threshold tuning, and GRU token-length sensitivity
 - source-vs-Reddit emotion distribution comparison
-- GRU validation-loss curves
-- final text-plus-emotion GRU threshold tuning and confusion matrices
-- threshold-objective sensitivity for balanced accuracy versus F1
-- token-length audit and 128 versus 256 GRU training sensitivity
-- run-level commands, interpretation, references, and disclosure
-
-Current notebook transformer-author coverage:
-
-- explicit statement that emotion probabilities are text-derived transferred representations, not independent emotion measurements or causal mediators
-- frozen transformer embedding cache and author-feature construction plan
-- artifact-status table for full transformer runs
-- architecture check showing the set/attention author model does not use temporal positional encoding
 - frozen transformer author result table from `scripts/run_transformer_author_models.py`
 - set/attention author result table from `scripts/run_set_attention_author_models.py`
-- paired bootstrap delta table for real-emotion-minus-text and shuffled-emotion-minus-text deltas
+- paired bootstrap delta table for real-emotion-minus-text and shuffled-emotion-minus-text comparisons
 - supplemental p200 seed-stability and epoch-sensitivity tables/figures for text, real-emotion, and shuffled-emotion set/attention variants
-- future-work note excluding supervised post-level transformer fine-tuning from the MS4 mainline
+- full reproduction commands showing which scripts generate the training outputs consumed by the notebook
+- final takeaways suitable for report and video planning
 
 ## Environment Management
 
@@ -135,6 +123,8 @@ reddit_raw = pd.read_csv(reddit_path, usecols=["author", "body", "mbti"])
 ```
 
 Full local artifact build order:
+
+The notebook itself is intentionally not the training driver. Full preprocessing, caching, model training, and report aggregation are script-based so that the notebook remains a readable final deliverable and `Restart Kernel + Run All` does not depend on rerunning long neural jobs. The commands below regenerate the result files that the notebook reads from `../report/results`.
 
 ```bash
 uv run --extra full python scripts/preprocess_reddit_ms4.py
