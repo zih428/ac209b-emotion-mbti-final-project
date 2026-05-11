@@ -178,13 +178,13 @@ Set-attention dominates the corrected GRU on \emph{every} dimension (Fig.~\ref{f
 \end{figure}
 
 \subsection{Does transferred emotion help? A controlled test}\label{sec:emotion}
-Three results converge on a cautious answer (Fig.~\ref{fig:emotion-delta}).
+Three results converge on a cautious answer.
 
-\textbf{(i)} \emph{Real emotion vs.\ text}, set-attention $P{=}200$: $\Delta_{\text{real}}{=}{-}0.0069$, $95\%$ CI $[-0.0191, +0.0041]$. The interval covers zero and is slightly negative.
+\textbf{(i)} \emph{Real emotion vs.\ text}, set-attention $P{=}200$ (Fig.~\ref{fig:emotion-delta}): $\Delta_{\text{real}}{=}{-}0.0069$, $95\%$ CI $[-0.0191, +0.0041]$. The interval covers zero and is slightly negative.
 
-\textbf{(ii)} \emph{Shuffled emotion vs.\ text}: $\Delta_{\text{shuf}}{=}{-}0.0067$, CI $[-0.0200, +0.0052]$. Random author-emotion alignment is statistically indistinguishable from real alignment. This is the negative control: had emotion carried robust author-level signal, $\Delta_{\text{real}}$ would have been clearly above $\Delta_{\text{shuf}}$.
+\textbf{(ii)} \emph{Shuffled emotion vs.\ text} (Fig.~\ref{fig:emotion-delta}): $\Delta_{\text{shuf}}{=}{-}0.0067$, CI $[-0.0200, +0.0052]$. Random author-emotion alignment is statistically indistinguishable from real alignment. This is the negative control: had emotion carried robust author-level signal, $\Delta_{\text{real}}$ would have been clearly above $\Delta_{\text{shuf}}$.
 
-\textbf{(iii)} The \emph{emotion-only} frozen author probe scores $0.565$, above majority ($0.500$) but well below text. Emotion features therefore \emph{do} carry author-level information; they just do not add information that the text encoder has not already captured.
+\textbf{(iii)} The \emph{emotion-only} frozen author probe scores $0.565$ (Table~\ref{tab:main}), above majority ($0.500$) but well below text. Emotion features therefore \emph{do} carry author-level information; they just do not add information that the text encoder has not already captured.
 
 \begin{figure}[t]
   \centering

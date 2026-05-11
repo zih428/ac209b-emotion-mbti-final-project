@@ -1,0 +1,112 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyperFirstAtBeginDocument{\AtBeginDocument}
+\HyperFirstAtBeginDocument{\ifx\hyper@anchor\@undefined
+\global\let\oldcontentsline\contentsline
+\gdef\contentsline#1#2#3#4{\oldcontentsline{#1}{#2}{#3}}
+\global\let\oldnewlabel\newlabel
+\gdef\newlabel#1#2{\newlabelxx{#1}#2}
+\gdef\newlabelxx#1#2#3#4#5#6{\oldnewlabel{#1}{{#2}{#3}}}
+\AtEndDocument{\ifx\hyper@anchor\@undefined
+\let\contentsline\oldcontentsline
+\let\newlabel\oldnewlabel
+\fi}
+\fi}
+\global\let\hyper@last\relax 
+\gdef\HyperFirstAtBeginDocument#1{#1}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{pennebaker1999linguistic,mairesse2007using,park2015automatic}
+\citation{pittenger1993utility}
+\citation{plank2015personality,gjurkovic2018reddit}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Background and motivation}{1}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Problem statement}{1}{section.2}\protected@file@percent }
+\citation{kaggle_reddit_mbti}
+\citation{hf_emotion_balanced}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces MBTI label-leakage audit before and after masking type tokens. Masking eliminates explicit type mentions while leaving the rest of the post intact.\relax }}{2}{table.caption.3}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{tab:leakage}{{1}{2}{MBTI label-leakage audit before and after masking type tokens. Masking eliminates explicit type mentions while leaving the rest of the post intact.\relax }{table.caption.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Data and EDA}{2}{section.3}\protected@file@percent }
+\newlabel{sec:data}{{3}{2}{Data and EDA}{section.3}{}}
+\@writefile{toc}{\contentsline {paragraph}{Preprocessing.}{2}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Class imbalance.}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Token length and emotion transfer.}{2}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Methods and models}{2}{section.4}\protected@file@percent }
+\newlabel{sec:methods}{{4}{2}{Methods and models}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Notation}{2}{subsection.4.1}\protected@file@percent }
+\citation{wang2020minilm,reimers2019sentencebert}
+\citation{zaheer2017deepsets}
+\citation{lee2019settransformer}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Baseline layer}{3}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Transferred emotion features}{3}{subsection.4.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Frozen transformer author probes}{3}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Set-attention author transformer (AC\nobreakspace  {}209b method)}{3}{subsection.4.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Mean test balanced accuracy across set-attention author-model variants and mean-pooled MLP baselines. Set-attention at $P{=}200$ on text alone (our clean main model) reaches $0.678$; the ``$+$ Controls'' diagnostic run reaches $0.688$ but bundles activity/length features and is not promoted to the headline.\relax }}{4}{figure.caption.6}\protected@file@percent }
+\newlabel{fig:summary}{{1}{4}{Mean test balanced accuracy across set-attention author-model variants and mean-pooled MLP baselines. Set-attention at $P{=}200$ on text alone (our clean main model) reaches $0.678$; the ``$+$ Controls'' diagnostic run reaches $0.688$ but bundles activity/length features and is not promoted to the headline.\relax }{figure.caption.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}Training and evaluation protocol}{4}{subsection.4.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Results and interpretation}{4}{section.5}\protected@file@percent }
+\newlabel{sec:results}{{5}{4}{Results and interpretation}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Headline comparison}{4}{subsection.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Why author-level set-attention beats baselines}{4}{subsection.5.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Author-level test metrics for the main models. ``Mean BA'' is averaged across $E,S,T,J$. Set-attention at $P{=}200$ is the clean main semantic model; controls are diagnostic.\relax }}{5}{table.caption.7}\protected@file@percent }
+\newlabel{tab:main}{{2}{5}{Author-level test metrics for the main models. ``Mean BA'' is averaged across $E,S,T,J$. Set-attention at $P{=}200$ is the clean main semantic model; controls are diagnostic.\relax }{table.caption.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Per-dimension test balanced accuracy across baselines. The corrected text-only GRU collapses to majority on $N/S$ and only weakly recovers $E/I$; class-weighted BCE plus author-aggregation pushes TF--IDF and GRU$+$Emotion above $0.5$ on every dimension. Set-attention $P{=}200$ then improves further on every dimension (Appx.\nobreakspace  {}Table\nobreakspace  {}\ref  {tab:per-dim}).\relax }}{5}{figure.caption.8}\protected@file@percent }
+\newlabel{fig:per-dim}{{2}{5}{Per-dimension test balanced accuracy across baselines. The corrected text-only GRU collapses to majority on $N/S$ and only weakly recovers $E/I$; class-weighted BCE plus author-aggregation pushes TF--IDF and GRU$+$Emotion above $0.5$ on every dimension. Set-attention $P{=}200$ then improves further on every dimension (Appx.~Table~\ref {tab:per-dim}).\relax }{figure.caption.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Does transferred emotion help? A controlled test}{5}{subsection.5.3}\protected@file@percent }
+\newlabel{sec:emotion}{{5.3}{5}{Does transferred emotion help? A controlled test}{subsection.5.3}{}}
+\citation{lee2019settransformer}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Real-emotion and shuffled-emotion deltas vs.\ text-only, with $95\%$ paired bootstrap CIs over test authors. Across all three families (frozen MiniLM probes, set-attention $P{=}50$, set-attention $P{=}200$), the real-emotion CI overlaps the shuffled-emotion CI and both straddle zero. The negative-control logic implies emotion does \emph  {not} add robust incremental signal beyond text.\relax }}{6}{figure.caption.9}\protected@file@percent }
+\newlabel{fig:emotion-delta}{{3}{6}{Real-emotion and shuffled-emotion deltas vs.\ text-only, with $95\%$ paired bootstrap CIs over test authors. Across all three families (frozen MiniLM probes, set-attention $P{=}50$, set-attention $P{=}200$), the real-emotion CI overlaps the shuffled-emotion CI and both straddle zero. The negative-control logic implies emotion does \emph {not} add robust incremental signal beyond text.\relax }{figure.caption.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Error structure and stability}{6}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {6}Conclusions and discussion}{6}{section.6}\protected@file@percent }
+\citation{pittenger1993utility}
+\bibstyle{plainnat}
+\bibcite{devlin2019bert}{{1}{2019}{{Devlin et~al.}}{{}}}
+\bibcite{gjurkovic2018reddit}{{2}{2018}{{Gjurkovi\'c and \v {S}najder}}{{}}}
+\bibcite{hf_emotion_balanced}{{3}{2023}{{Hugging Face emotion-balanced}}{{}}}
+\bibcite{kaggle_reddit_mbti}{{4}{2024}{{Kaggle Reddit MBTI}}{{}}}
+\bibcite{lee2019settransformer}{{5}{2019}{{Lee et~al.}}{{}}}
+\bibcite{mairesse2007using}{{6}{2007}{{Mairesse et~al.}}{{}}}
+\bibcite{park2015automatic}{{7}{2015}{{Park et~al.}}{{}}}
+\bibcite{pennebaker1999linguistic}{{8}{1999}{{Pennebaker and King}}{{}}}
+\bibcite{pittenger1993utility}{{9}{1993}{{Pittenger}}{{}}}
+\bibcite{plank2015personality}{{10}{2015}{{Plank and Hovy}}{{}}}
+\bibcite{reimers2019sentencebert}{{11}{2019}{{Reimers and Gurevych}}{{}}}
+\bibcite{vaswani2017attention}{{12}{2017}{{Vaswani et~al.}}{{}}}
+\bibcite{wang2020minilm}{{13}{2020}{{Wang et~al.}}{{}}}
+\bibcite{zaheer2017deepsets}{{14}{2017}{{Zaheer et~al.}}{{}}}
+\bibcite{cursor_ai}{{15}{2026}{{Cursor / Anthropic}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Broader impact}{7}{section.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix: supplementary figures and tables}{8}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Token length and emotion-transfer EDA}{8}{subsection.A.1}\protected@file@percent }
+\newlabel{fig:tokenlen}{{4a}{8}{Token-length sensitivity for 128- vs.\ 256-token caps. The 256 cap truncates only $1.5\%$ of posts (vs.\ $6.4\%$ at 128), motivating its use for MiniLM.\relax }{figure.caption.11}{}}
+\newlabel{sub@fig:tokenlen}{{a}{8}{Token-length sensitivity for 128- vs.\ 256-token caps. The 256 cap truncates only $1.5\%$ of posts (vs.\ $6.4\%$ at 128), motivating its use for MiniLM.\relax }{figure.caption.11}{}}
+\newlabel{fig:emotiondist}{{4b}{8}{Source emotion-balanced labels vs.\ Reddit-inferred posterior shares. Reddit posts skew toward joy and anger; this is why we treat emotion as a transferred representation rather than a calibrated mood measurement.\relax }{figure.caption.11}{}}
+\newlabel{sub@fig:emotiondist}{{b}{8}{Source emotion-balanced labels vs.\ Reddit-inferred posterior shares. Reddit posts skew toward joy and anger; this is why we treat emotion as a transferred representation rather than a calibrated mood measurement.\relax }{figure.caption.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Token-length and emotion-distribution EDA used to motivate modelling choices.\relax }}{8}{figure.caption.11}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Stage\nobreakspace  {}2 GRU training sensitivity to maximum sequence length. The 128-token GRU is what we report as the baseline; the 256-token GRU collapsed during full training, suggesting that the GRU+embedding combination does not benefit from longer truncation without further regularisation.\relax }}{8}{figure.caption.12}\protected@file@percent }
+\newlabel{fig:maxlen}{{5}{8}{Stage~2 GRU training sensitivity to maximum sequence length. The 128-token GRU is what we report as the baseline; the 256-token GRU collapsed during full training, suggesting that the GRU+embedding combination does not benefit from longer truncation without further regularisation.\relax }{figure.caption.12}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Baseline and GRU diagnostics}{9}{subsection.A.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Baseline mean test balanced accuracy and bootstrap CIs. Set-attention models are excluded here; see Fig.\nobreakspace  {}\ref  {fig:summary} for them.\relax }}{9}{figure.caption.13}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Corrected GRU diagnostics underlying the baseline rows of Table\nobreakspace  {}\ref  {tab:main}.\relax }}{9}{figure.caption.14}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Threshold tuning and per-dimension GRU emotion gain diagnostics.\relax }}{9}{figure.caption.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Per-dimension headline metrics}{10}{subsection.A.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Per-dimension test balanced accuracy for selected models. Set-attention $P{=}200$ improves every dimension over the corrected GRU and improves $E$, $S$, and $T$ over TF--IDF.\relax }}{10}{table.caption.16}\protected@file@percent }
+\newlabel{tab:per-dim}{{3}{10}{Per-dimension test balanced accuracy for selected models. Set-attention $P{=}200$ improves every dimension over the corrected GRU and improves $E$, $S$, and $T$ over TF--IDF.\relax }{table.caption.16}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.4}Set-attention error structure and stability}{10}{subsection.A.4}\protected@file@percent }
+\newlabel{fig:cmgru}{{9a}{10}{Corrected GRU text$+$emotion confusion matrices.\relax }{figure.caption.17}{}}
+\newlabel{sub@fig:cmgru}{{a}{10}{Corrected GRU text$+$emotion confusion matrices.\relax }{figure.caption.17}{}}
+\newlabel{fig:cmsa}{{9b}{10}{Set-attention text $P{=}200$ confusion matrices.\relax }{figure.caption.17}{}}
+\newlabel{sub@fig:cmsa}{{b}{10}{Set-attention text $P{=}200$ confusion matrices.\relax }{figure.caption.17}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Per-dimension confusion structure. Set-attention recovers minority $S$, $E$ at a much higher rate than the GRU.\relax }}{10}{figure.caption.17}\protected@file@percent }
+\newlabel{fig:budget}{{10a}{10}{Post-budget sensitivity ($P{=}50$ vs.\ $P{=}200$).\relax }{figure.caption.18}{}}
+\newlabel{sub@fig:budget}{{a}{10}{Post-budget sensitivity ($P{=}50$ vs.\ $P{=}200$).\relax }{figure.caption.18}{}}
+\newlabel{fig:seed}{{10b}{10}{Seed stability across three random seeds.\relax }{figure.caption.18}{}}
+\newlabel{sub@fig:seed}{{b}{10}{Seed stability across three random seeds.\relax }{figure.caption.18}{}}
+\newlabel{fig:epoch}{{10c}{10}{Epoch-cap sensitivity ($5$/$10$/$20$ epochs, early stopping enabled).\relax }{figure.caption.18}{}}
+\newlabel{sub@fig:epoch}{{c}{10}{Epoch-cap sensitivity ($5$/$10$/$20$ epochs, early stopping enabled).\relax }{figure.caption.18}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Set-attention $P{=}200$ stability checks. The author-level direction is stable across post budget, seed, and epoch cap.\relax }}{10}{figure.caption.18}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Frozen MiniLM author-probe family. The text + controls and text + real-emotion + controls variants are within $0.001$ of frozen text alone, again consistent with emotion not adding incremental signal under simple pooling.\relax }}{11}{figure.caption.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.5}Pipeline diagram}{11}{subsection.A.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces End-to-end MS4 pipeline. Reddit posts are loaded via KaggleHub, masked for MBTI tokens, filtered, and split by author. Frozen MiniLM produces per-post embeddings; a separate Stage-1 emotion classifier produces transferred emotion probabilities. Author features feed into the baseline layer, the frozen probes, and the set-attention author transformer.\relax }}{11}{figure.caption.20}\protected@file@percent }
+\gdef \@abspage@last{11}
